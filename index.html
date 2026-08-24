@@ -40,8 +40,9 @@
     --black: #0a0a0a;
     --green: #1f4a36;
     --green-light: #2c6b4d;
-    --nav-top: clamp(14px, 2vw, 26px);
-    --nav-h: clamp(72px, 7.4vw, 92px);
+    --nav-top: clamp(8px, 1vw, 14px);
+    --nav-h: clamp(78px, 7.8vw, 96px);
+    --nav-radius: clamp(16px, 1.8vw, 22px);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -68,11 +69,16 @@
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     padding: 0 clamp(20px, 3vw, 40px);
-    background: rgba(26, 26, 28, 0.62);
-    backdrop-filter: blur(9px);
-    -webkit-backdrop-filter: blur(9px);
-    border-radius: clamp(14px, 1.6vw, 20px);
+    background: rgba(22, 22, 24, 0.32);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: var(--nav-radius);
+    transition: border-radius 0.3s ease;
     pointer-events: none;
+  }
+
+  body.menu-open .nav {
+    border-radius: var(--nav-radius) var(--nav-radius) 0 0;
   }
 
   .nav__links {
@@ -116,9 +122,9 @@
     background: var(--green);
     color: var(--white);
     text-decoration: none;
-    font-size: 0.92rem;
+    font-size: clamp(0.92rem, 1vw, 1.02rem);
     font-weight: 600;
-    padding: 0.7em 1.5em;
+    padding: 0.95em 1.8em;
     border-radius: 999px;
     white-space: nowrap;
     transition: background 0.2s;
@@ -148,16 +154,19 @@
   body.menu-open .nav__menu line:nth-child(2) { opacity: 0; }
   body.menu-open .nav__menu line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  /* ---------- Nav overlay menu (opened/closed via GSAP, not CSS transitions) ---------- */
+  /* ---------- Nav overlay menu — same glass panel as the nav, joined
+     directly underneath it so the two read as one continuous card
+     (opened/closed via GSAP, not CSS transitions) ---------- */
   .nav-overlay {
     position: fixed;
-    top: calc(var(--nav-top) * 2 + var(--nav-h));
-    left: 0;
-    width: 100%;
+    top: calc(var(--nav-top) + var(--nav-h));
+    left: var(--nav-top);
+    right: var(--nav-top);
     z-index: 99;
-    background: rgba(10, 10, 10, 0.86);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(16, 16, 18, 0.6);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 0 0 var(--nav-radius) var(--nav-radius);
     padding: clamp(28px, 5vw, 56px) clamp(24px, 5vw, 76px);
     max-height: 90vh;
     overflow-y: auto;
