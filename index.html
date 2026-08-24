@@ -85,7 +85,7 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    min-height: 64px;
+    min-height: clamp(80px, 8.8vw, 96px);
     padding: 0 clamp(16px, 2vw, 32px);
   }
 
@@ -107,7 +107,11 @@
 
   .nav__logo {
     grid-column: 2;
-    height: clamp(36px, 4vw, 44px);
+    display: block;
+  }
+
+  .nav__logo img {
+    height: clamp(56px, 6.4vw, 72px);
     width: auto;
     display: block;
   }
@@ -297,7 +301,9 @@
         <a href="#">About</a>
         <a href="#">Projects</a>
       </div>
-      <img class="nav__logo" src="/assets/img/ironclad-logo-nav-primary.png" alt="Ironclad Construction" />
+      <a class="nav__logo" href="/" aria-label="Ironclad Construction — home">
+        <img src="/assets/img/ironclad-logo-nav-primary.png" alt="Ironclad Construction" />
+      </a>
       <div class="nav__right">
         <a class="nav__cta" href="#">Get A Quote</a>
         <button class="nav__menu" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false">
