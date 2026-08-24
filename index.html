@@ -32,7 +32,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
 
 <style>
   :root {
@@ -71,6 +71,24 @@
     pointer-events: none;
   }
 
+  .nav__links {
+    grid-column: 1;
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 2.4vw, 36px);
+    pointer-events: auto;
+  }
+
+  .nav__links a {
+    color: var(--white);
+    text-decoration: none;
+    font-size: clamp(0.92rem, 1vw, 1rem);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .nav__links a:hover { opacity: 0.75; }
+
   .nav__logo {
     grid-column: 2;
     height: clamp(58px, 7.2vw, 82px);
@@ -79,9 +97,32 @@
     pointer-events: auto;
   }
 
-  .nav__menu {
+  .nav__right {
     grid-column: 3;
     justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: clamp(16px, 2vw, 28px);
+    pointer-events: auto;
+  }
+
+  .nav__cta {
+    display: inline-flex;
+    align-items: center;
+    background: var(--green);
+    color: var(--white);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 600;
+    padding: 0.7em 1.5em;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition: background 0.2s;
+  }
+
+  .nav__cta:hover { background: var(--green-light); }
+
+  .nav__menu {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -90,24 +131,70 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    pointer-events: auto;
+    flex-shrink: 0;
   }
 
   .nav__menu svg { width: 26px; height: 26px; display: block; }
+  .nav__menu line {
+    stroke: #fff;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+    transform-origin: center;
+  }
+  body.menu-open .nav__menu line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  body.menu-open .nav__menu line:nth-child(2) { opacity: 0; }
+  body.menu-open .nav__menu line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  /* ---------- Hero ---------- */
-  .hero {
-    position: relative;
-    height: 220vh;
-    height: 220svh;
+  /* ---------- Nav overlay menu ---------- */
+  .nav-overlay {
+    position: fixed;
+    top: var(--nav-h);
+    left: 0;
+    width: 100%;
+    z-index: 99;
+    background: rgba(10, 10, 10, 0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding: clamp(28px, 5vw, 56px) clamp(20px, 4vw, 56px);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
   }
 
-  .hero__media {
+  body.menu-open .nav-overlay {
+    max-height: 80vh;
+    opacity: 1;
+  }
+
+  .nav-overlay a {
+    display: block;
+    color: var(--white);
+    text-decoration: none;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    font-size: clamp(1.8rem, 4vw, 2.6rem);
+    padding: 0.3em 0;
+  }
+
+  .nav-overlay a:hover { color: var(--green-light); }
+
+  /* ---------- Hero (scroll-scrubbed video) ---------- */
+  .scrub-wrap {
+    position: relative;
+    height: 700vh;
+  }
+
+  .scrub-pin {
     position: sticky;
     top: 0;
     height: 100vh;
     height: 100svh;
     width: 100%;
+    overflow: hidden;
+    background: var(--black);
   }
 
   .hero__video {
@@ -132,15 +219,16 @@
     bottom: clamp(64px, 12vh, 130px);
     right: clamp(24px, 6vw, 72px);
     max-width: 900px;
+    transition: opacity 0.2s linear;
   }
 
   .hero__headline {
-    font-family: 'Archivo Black', 'Barlow', sans-serif;
-    font-weight: 400;
+    font-family: 'Barlow Condensed', 'Barlow', sans-serif;
+    font-weight: 800;
     text-transform: uppercase;
-    line-height: 0.98;
-    letter-spacing: -0.01em;
-    font-size: clamp(2.6rem, 7.2vw, 6.2rem);
+    line-height: 0.95;
+    letter-spacing: 0.005em;
+    font-size: clamp(2.8rem, 7.6vw, 6.6rem);
     color: var(--white);
     text-shadow: 0 2px 24px rgba(0,0,0,0.25);
   }
@@ -152,6 +240,7 @@
 
   .hero__headline span b {
     display: block;
+    font-weight: 800;
     transform-origin: left bottom;
   }
 
@@ -168,12 +257,18 @@
     margin-top: clamp(28px, 4vw, 44px);
     width: 22px;
     height: 22px;
+    transition: opacity 0.3s ease;
   }
 
   .hero__arrow svg {
     width: 100%;
     height: 100%;
     stroke: rgba(255,255,255,0.85);
+  }
+
+  @media (max-width: 720px) {
+    .scrub-wrap { height: 500vh; }
+    .nav__links { display: none; }
   }
 
   /* ---------- Blank ---------- */
@@ -186,30 +281,44 @@
 <body>
 
 <nav class="nav">
+  <div class="nav__links">
+    <a href="#">About</a>
+    <a href="#">Projects</a>
+  </div>
   <img class="nav__logo" src="/assets/img/ironclad-logo-nav-primary.png" alt="Ironclad Construction" />
-  <button class="nav__menu" type="button" aria-label="Menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <line x1="3" y1="6" x2="21" y2="6" style="stroke:#fff" />
-      <line x1="3" y1="12" x2="21" y2="12" style="stroke:#fff" />
-      <line x1="3" y1="18" x2="21" y2="18" style="stroke:#fff" />
-    </svg>
-  </button>
+  <div class="nav__right">
+    <a class="nav__cta" href="#">Get A Quote</a>
+    <button class="nav__menu" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+  </div>
 </nav>
 
-<section class="hero">
-  <div class="hero__media">
+<div class="nav-overlay" id="navOverlay">
+  <a href="#">Home</a>
+  <a href="#">Services</a>
+  <a href="#">Projects</a>
+  <a href="#">About</a>
+  <a href="#">Contact</a>
+</div>
+
+<section class="scrub-wrap" id="scrubWrap">
+  <div class="scrub-pin">
     <video
       class="hero__video"
-      src="/assets/video/hero-construction.mp4"
+      id="heroVideo"
       poster="/assets/img/hero-poster.jpg"
-      autoplay
       muted
-      loop
       playsinline
+      preload="none"
     ></video>
     <div class="hero__scrim"></div>
 
-    <div class="hero__content">
+    <div class="hero__content" id="heroContent">
       <h1 class="hero__headline">
         <span><b>Ground Up,</b></span>
         <span><b>Built Ironclad.</b></span>
@@ -217,7 +326,7 @@
       <p class="hero__sub">
         From foundation to final walkthrough — custom homes, additions, and renovations built by a crew that treats every job like it's their own name on the sign.
       </p>
-      <div class="hero__arrow">
+      <div class="hero__arrow" id="heroArrow">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 4v16M5 13l7 7 7-7" />
         </svg>
@@ -229,10 +338,7 @@
 <section class="blank" aria-hidden="true"></section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
-  gsap.registerPlugin(ScrollTrigger);
-
   // Intro: headline lines, subtext and arrow settle in from an oversized,
   // faded-out state — mirrors the reference site's load-in treatment.
   const tl = gsap.timeline({ delay: 0.15 });
@@ -249,20 +355,96 @@
     .from('.hero__sub', { opacity: 0, y: 24, duration: 0.9, ease: 'power2.out' }, '-=0.7')
     .from('.hero__arrow', { opacity: 0, y: 16, duration: 0.7, ease: 'power2.out' }, '-=0.5');
 
-  // Scroll-out: as the page scrolls, headline/subtext/arrow ride up and fade
-  // while the pinned video stays put underneath — same mechanic as the reference.
-  gsap.to('.hero__content', {
-    yPercent: -60,
-    opacity: 0,
-    ease: 'none',
-    scrollTrigger: {
-      trigger: '.hero',
-      start: 'top top',
-      end: () => '+=' + window.innerHeight * 0.9,
-      scrub: true,
-      invalidateOnRefresh: true
-    }
+  let introSettled = false;
+  tl.eventCallback('onComplete', () => { introSettled = true; tick(); });
+
+  // NAV MENU
+  const menuBtn = document.getElementById('menuBtn');
+  const navOverlay = document.getElementById('navOverlay');
+  menuBtn.addEventListener('click', () => {
+    const open = document.body.classList.toggle('menu-open');
+    menuBtn.setAttribute('aria-expanded', String(open));
   });
+  navOverlay.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    document.body.classList.remove('menu-open');
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }));
+
+  // SCROLL-SCRUB HERO — the video's currentTime is driven directly by scroll
+  // position (house builds as you scroll), same mechanic as the Aqualine
+  // Pools and Meridian Estates heroes. Cloudflare Workers static assets
+  // don't honor Range requests, so a plain streaming <video src> can't seek
+  // reliably — the whole file is fetched once as a blob instead, then every
+  // seek is served from memory.
+  const heroVideo = document.getElementById('heroVideo');
+  const scrubWrap = document.getElementById('scrubWrap');
+  const heroContent = document.getElementById('heroContent');
+  const heroArrow = document.getElementById('heroArrow');
+
+  let heroVideoReady = false;
+  fetch('/assets/video/hero-construction.mp4')
+    .then(r => r.blob())
+    .then(blob => {
+      heroVideo.src = URL.createObjectURL(blob);
+      heroVideo.addEventListener('loadedmetadata', () => {
+        heroVideoReady = true;
+        tick();
+      }, { once: true });
+    })
+    .catch(() => {});
+
+  // Eases the video's currentTime toward the scroll-derived target every
+  // animation frame instead of snapping straight to it, so the build reads
+  // as continuous motion rather than a jump per scroll tick. A new seek is
+  // only issued once the browser reports the previous one finished (the
+  // 'seeked' event) — firing currentTime every frame regardless queues
+  // seeks faster than the decoder can keep up and looks worse, not better.
+  let targetTime = 0, smoothedTime = 0, smoothLoopRunning = false, seekPending = false;
+  heroVideo.addEventListener('seeked', () => { seekPending = false; });
+
+  function timeSmoothLoop() {
+    smoothedTime += (targetTime - smoothedTime) * 0.09;
+    if (Math.abs(targetTime - smoothedTime) < 0.02) smoothedTime = targetTime;
+    if (!seekPending && Math.abs(heroVideo.currentTime - smoothedTime) > 0.001) {
+      seekPending = true;
+      try { heroVideo.currentTime = smoothedTime; } catch (e) { seekPending = false; }
+    }
+    if (smoothedTime !== targetTime || seekPending) requestAnimationFrame(timeSmoothLoop);
+    else smoothLoopRunning = false;
+  }
+
+  function requestHeroTime(t) {
+    targetTime = t;
+    if (!smoothLoopRunning) { smoothLoopRunning = true; requestAnimationFrame(timeSmoothLoop); }
+  }
+
+  function prog() {
+    const t = scrubWrap.offsetTop, h = scrubWrap.offsetHeight, vh = window.innerHeight;
+    return Math.max(0, Math.min(1, (window.scrollY - t) / (h - vh)));
+  }
+
+  let raf = false;
+  function tick() {
+    const p = prog();
+    if (heroVideoReady) requestHeroTime(p * heroVideo.duration);
+
+    // Headline/sub/arrow fade + ride up early in the scroll, then stay
+    // clear while the video keeps building through the rest of the scrub.
+    // Left alone until the load-in entrance has finished (or the page is
+    // already scrolled, e.g. a bfcache restore) so this never fights GSAP
+    // mid-tween.
+    if (introSettled || p > 0.001) {
+      const localP = Math.max(0, Math.min(1, p / 0.15));
+      heroContent.style.opacity = String(1 - localP);
+      heroContent.style.transform = `translateY(${-60 * localP}px)`;
+      heroArrow.style.opacity = p < 0.03 ? '1' : '0';
+    }
+
+    raf = false;
+  }
+
+  window.addEventListener('scroll', () => { if (!raf) { raf = true; requestAnimationFrame(tick); } }, { passive: true });
+  tick();
 </script>
 
 </body>
