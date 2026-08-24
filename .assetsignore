@@ -1,0 +1,7 @@
+.git
+.gitignore
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
