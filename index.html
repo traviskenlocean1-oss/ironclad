@@ -40,7 +40,8 @@
     --black: #0a0a0a;
     --green: #1f4a36;
     --green-light: #2c6b4d;
-    --nav-h: clamp(92px, 10vw, 124px);
+    --nav-top: clamp(14px, 2vw, 26px);
+    --nav-h: clamp(72px, 7.4vw, 92px);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -55,19 +56,22 @@
     color: var(--white);
   }
 
-  /* ---------- Nav ---------- */
+  /* ---------- Nav (inset floating pill, matches the reference's contained bar) ---------- */
   .nav {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+    top: var(--nav-top);
+    left: var(--nav-top);
+    right: var(--nav-top);
     height: var(--nav-h);
     z-index: 100;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    padding: 0 clamp(20px, 4vw, 56px);
-    background: linear-gradient(to bottom, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0.32) 55%, rgba(0,0,0,0) 100%);
+    padding: 0 clamp(20px, 3vw, 40px);
+    background: rgba(26, 26, 28, 0.62);
+    backdrop-filter: blur(9px);
+    -webkit-backdrop-filter: blur(9px);
+    border-radius: clamp(14px, 1.6vw, 20px);
     pointer-events: none;
   }
 
@@ -75,14 +79,14 @@
     grid-column: 1;
     display: flex;
     align-items: center;
-    gap: clamp(20px, 2.4vw, 36px);
+    gap: clamp(16px, 1.8vw, 28px);
     pointer-events: auto;
   }
 
   .nav__links a {
     color: var(--white);
     text-decoration: none;
-    font-size: clamp(0.92rem, 1vw, 1rem);
+    font-size: clamp(0.88rem, 0.95vw, 0.98rem);
     font-weight: 500;
     letter-spacing: 0.01em;
   }
@@ -91,7 +95,7 @@
 
   .nav__logo {
     grid-column: 2;
-    height: clamp(58px, 7.2vw, 82px);
+    height: clamp(46px, 5.6vw, 62px);
     width: auto;
     display: block;
     pointer-events: auto;
@@ -144,33 +148,21 @@
   body.menu-open .nav__menu line:nth-child(2) { opacity: 0; }
   body.menu-open .nav__menu line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-  /* ---------- Nav overlay menu ---------- */
+  /* ---------- Nav overlay menu (opened/closed via GSAP, not CSS transitions) ---------- */
   .nav-overlay {
     position: fixed;
-    top: var(--nav-h);
+    top: calc(var(--nav-top) * 2 + var(--nav-h));
     left: 0;
     width: 100%;
     z-index: 99;
-    background: rgba(10, 10, 10, 0.82);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border-top: 1px solid rgba(255,255,255,0.12);
-    padding: clamp(28px, 5vw, 56px) clamp(20px, 4vw, 56px);
+    background: rgba(10, 10, 10, 0.86);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: clamp(28px, 5vw, 56px) clamp(24px, 5vw, 76px);
     max-height: 90vh;
     overflow-y: auto;
     opacity: 0;
-    transform: translateY(-12px);
     pointer-events: none;
-    visibility: hidden;
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0.3s;
-  }
-
-  body.menu-open .nav-overlay {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-    visibility: visible;
-    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s linear 0s;
   }
 
   .nav-overlay a {
@@ -225,7 +217,6 @@
     bottom: clamp(64px, 12vh, 130px);
     right: clamp(24px, 6vw, 72px);
     max-width: 900px;
-    transition: opacity 0.2s linear;
   }
 
   .hero__headline {
@@ -263,7 +254,6 @@
     margin-top: clamp(28px, 4vw, 44px);
     width: 22px;
     height: 22px;
-    transition: opacity 0.3s ease;
   }
 
   .hero__arrow svg {
@@ -364,17 +354,43 @@
   let introSettled = false;
   tl.eventCallback('onComplete', () => { introSettled = true; tick(); });
 
-  // NAV MENU
+  // NAV MENU — a slow, staggered reveal (not a snap-open) for a more
+  // deliberate, higher-end feel than a plain CSS transition gives.
   const menuBtn = document.getElementById('menuBtn');
   const navOverlay = document.getElementById('navOverlay');
-  menuBtn.addEventListener('click', () => {
-    const open = document.body.classList.toggle('menu-open');
-    menuBtn.setAttribute('aria-expanded', String(open));
-  });
-  navOverlay.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  const overlayLinks = navOverlay.querySelectorAll('a');
+  let menuOpen = false;
+
+  function openMenu() {
+    if (menuOpen) return;
+    menuOpen = true;
+    document.body.classList.add('menu-open');
+    menuBtn.setAttribute('aria-expanded', 'true');
+    navOverlay.style.pointerEvents = 'auto';
+    gsap.killTweensOf([navOverlay, overlayLinks]);
+    gsap.to(navOverlay, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+    gsap.fromTo(overlayLinks,
+      { opacity: 0, y: 28 },
+      { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.08, delay: 0.08 }
+    );
+  }
+
+  function closeMenu() {
+    if (!menuOpen) return;
+    menuOpen = false;
     document.body.classList.remove('menu-open');
     menuBtn.setAttribute('aria-expanded', 'false');
-  }));
+    gsap.killTweensOf([navOverlay, overlayLinks]);
+    gsap.to(navOverlay, {
+      opacity: 0,
+      duration: 0.35,
+      ease: 'power2.in',
+      onComplete: () => { navOverlay.style.pointerEvents = 'none'; }
+    });
+  }
+
+  menuBtn.addEventListener('click', () => (menuOpen ? closeMenu() : openMenu()));
+  overlayLinks.forEach(a => a.addEventListener('click', closeMenu));
 
   // SCROLL-SCRUB HERO — the video's currentTime is driven directly by scroll
   // position (house builds as you scroll), same mechanic as the Aqualine
@@ -385,7 +401,6 @@
   const heroVideo = document.getElementById('heroVideo');
   const scrubWrap = document.getElementById('scrubWrap');
   const heroContent = document.getElementById('heroContent');
-  const heroArrow = document.getElementById('heroArrow');
 
   let heroVideoReady = false;
   fetch('/assets/video/hero-construction.mp4')
@@ -424,9 +439,22 @@
     if (!smoothLoopRunning) { smoothLoopRunning = true; requestAnimationFrame(timeSmoothLoop); }
   }
 
+  // scrubWrap's offsetTop/offsetHeight are layout reads — calling them on
+  // every scroll event forces a synchronous reflow on top of an already
+  // heavy scroll handler, which is what was making the whole page feel
+  // laggy while scrolling (not just the video). Measured once and cached,
+  // recomputed only on resize.
+  let wrapTop = 0, wrapHeight = 0;
+  function measureWrap() {
+    wrapTop = scrubWrap.offsetTop;
+    wrapHeight = scrubWrap.offsetHeight;
+  }
+  measureWrap();
+  window.addEventListener('resize', measureWrap);
+
   function prog() {
-    const t = scrubWrap.offsetTop, h = scrubWrap.offsetHeight, vh = window.innerHeight;
-    return Math.max(0, Math.min(1, (window.scrollY - t) / (h - vh)));
+    const vh = window.innerHeight;
+    return Math.max(0, Math.min(1, (window.scrollY - wrapTop) / (wrapHeight - vh)));
   }
 
   let raf = false;
@@ -434,16 +462,15 @@
     const p = prog();
     if (heroVideoReady) requestHeroTime(p * heroVideo.duration);
 
-    // Headline/sub/arrow fade + ride up early in the scroll, then stay
-    // clear while the video keeps building through the rest of the scrub.
-    // Left alone until the load-in entrance has finished (or the page is
-    // already scrolled, e.g. a bfcache restore) so this never fights GSAP
-    // mid-tween.
+    // Headline/sub/arrow ride straight up and off the top of the screen
+    // as you scroll -- no fade, just translation -- spread over the first
+    // 40% of the scrub so it doesn't feel rushed, while the video keeps
+    // building underneath through the rest. Left alone until the load-in
+    // entrance has finished (or the page is already scrolled, e.g. a
+    // bfcache restore) so this never fights GSAP mid-tween.
     if (introSettled || p > 0.001) {
-      const localP = Math.max(0, Math.min(1, p / 0.15));
-      heroContent.style.opacity = String(1 - localP);
-      heroContent.style.transform = `translateY(${-60 * localP}px)`;
-      heroArrow.style.opacity = p < 0.03 ? '1' : '0';
+      const localP = Math.max(0, Math.min(1, p / 0.4));
+      heroContent.style.transform = `translateY(${-130 * localP}vh)`;
     }
 
     raf = false;
