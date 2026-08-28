@@ -291,18 +291,12 @@
      a light-weight sans paragraph, with a mouse-driven image trail spread
      across the section. Cards are invisible at rest and only appear as
      the cursor crosses the section, per the reference behavior. ---------- */
-  .trail-section {
-    position: relative;
-    background: var(--white);
-    padding: clamp(96px, 14vw, 180px) 24px;
-    overflow: hidden;
-  }
-
   .trail-section__inner {
     position: relative;
     z-index: 2;
     max-width: 900px;
     margin: 0 auto;
+    padding: 0 24px;
     text-align: center;
   }
 
@@ -364,39 +358,51 @@
     display: block;
   }
 
-  @media (max-width: 720px) {
-    .trail-section { padding: 72px 24px; }
+  /* ---------- Craft crossfade — video fades IN ON TOP of the headline/
+     paragraph in the same screen position (not a separate stacked block).
+     A tall pin section (250vh) holds a sticky 100vh stage; GSAP
+     ScrollTrigger drives the text layer's opacity down and the video
+     layer's opacity up together as you scroll through it, then releases
+     into whatever follows. ---------- */
+  .craft-pin-wrap {
+    position: relative;
+    height: 250vh;
   }
 
-  /* ---------- Craft footage — matches havenconstructions.com.au's layout:
-     a full-bleed clip positioned to overlap the tail end of the section
-     above it (not a scroll-linked pin — their site simply places blocks
-     to overlap; the negative margin-top here reproduces that same
-     layered look with normal document flow). Deliberately avoids generic
-     names like "video-reveal"/"overlay" — those exact patterns are common
-     targets for ad-blocker cosmetic filters, which can silently strip
-     positioning from an element that is otherwise byte-for-byte correct
-     on the wire. ---------- */
-  .craft-media {
-    position: relative;
-    z-index: 3;
-    margin-top: -48vh;
+  .craft-stage {
+    position: sticky;
+    top: 0;
     height: 100vh;
     height: 100svh;
     overflow: hidden;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .craft-stage__layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .craft-stage__media {
+    opacity: 0;
+  }
+
+  .craft-stage__clip {
+    width: min(78vw, 960px);
+    height: min(62vh, 560px);
+    object-fit: cover;
     background: var(--black);
   }
 
-  .craft-media__clip {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
   @media (max-width: 720px) {
-    .craft-media { margin-top: -22vh; height: 70vh; height: 70svh; }
+    .craft-pin-wrap { height: 220vh; }
+    .craft-stage__clip { width: 90vw; height: 46vh; }
   }
 </style>
 </head>
@@ -466,33 +472,37 @@
   </div>
 </section>
 
-<section class="trail-section" id="trailSection">
-  <div class="trail-container" id="trailContainer" aria-hidden="true"></div>
-  <div class="trail-section__inner">
-    <h2 class="trail-headline">
-      Honest craftsmanship<br />
-      built for your next<br />
-      construction project.
-    </h2>
-    <p class="trail-copy">
-      We break from cookie-cutter construction with thoughtful planning and honest execution. As an extension of your vision, we manage every detail — from site prep and framing to finishes and final walkthrough — so nothing falls through the cracks.
-    </p>
+<section class="craft-pin-wrap" id="craftPinWrap">
+  <div class="craft-stage" id="trailSection">
+    <div class="trail-container" id="trailContainer" aria-hidden="true"></div>
+    <div class="craft-stage__layer craft-stage__text" id="craftText">
+      <div class="trail-section__inner">
+        <h2 class="trail-headline">
+          Honest craftsmanship<br />
+          built for your next<br />
+          construction project.
+        </h2>
+        <p class="trail-copy">
+          We break from cookie-cutter construction with thoughtful planning and honest execution. As an extension of your vision, we manage every detail — from site prep and framing to finishes and final walkthrough — so nothing falls through the cracks.
+        </p>
+      </div>
+    </div>
+    <div class="craft-stage__layer craft-stage__media" id="craftMediaLayer">
+      <video
+        class="craft-stage__clip"
+        id="craftClip"
+        poster="/assets/img/craftsmanship-reveal-poster.jpg"
+        muted
+        loop
+        playsinline
+        preload="none"
+      ></video>
+    </div>
   </div>
 </section>
 
-<section class="craft-media" id="craftMedia">
-  <video
-    class="craft-media__clip"
-    id="craftClip"
-    poster="/assets/img/craftsmanship-reveal-poster.jpg"
-    muted
-    loop
-    playsinline
-    preload="none"
-  ></video>
-</section>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
   // Intro: headline lines, subtext and arrow settle in from an oversized,
   // faded-out state — mirrors the reference site's load-in treatment.
@@ -688,11 +698,17 @@
     trailSection.addEventListener('mouseleave', () => { lastX = null; lastY = null; });
   }
 
-  // CRAFT MEDIA — lazily loads and plays the framing/roof clip once the
-  // section is nearly in view, rather than fetching ~16MB up front.
+  // CRAFT CROSSFADE — the video fades IN ON TOP of the headline/paragraph
+  // in the same screen position as you scroll through a pinned section,
+  // rather than being a separate block stacked below. GSAP ScrollTrigger
+  // pins #trailSection for the height of #craftPinWrap (250vh) and scrubs
+  // both layers' opacity directly off scroll progress through that range.
   const craftClip = document.getElementById('craftClip');
-  const craftMedia = document.getElementById('craftMedia');
-  if (craftClip && craftMedia && 'IntersectionObserver' in window) {
+  const craftPinWrap = document.getElementById('craftPinWrap');
+  const craftText = document.getElementById('craftText');
+  const craftMediaLayer = document.getElementById('craftMediaLayer');
+
+  if (craftClip && craftPinWrap && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -702,7 +718,22 @@
         }
       });
     }, { rootMargin: '600px 0px' });
-    io.observe(craftMedia);
+    io.observe(craftPinWrap);
+  }
+
+  if (craftPinWrap && craftText && craftMediaLayer && window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.create({
+      trigger: craftPinWrap,
+      start: 'top top',
+      end: 'bottom bottom',
+      scrub: true,
+      onUpdate: (self) => {
+        const p = self.progress;
+        gsap.set(craftText, { opacity: 1 - p });
+        gsap.set(craftMediaLayer, { opacity: p });
+      }
+    });
   }
 </script>
 
