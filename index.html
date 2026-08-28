@@ -389,11 +389,9 @@
 
   .craft-stage__media {
     position: absolute;
-    left: 0;
-    right: 0;
-    top: 14vh;
+    inset: 0;
     width: 100%;
-    height: min(72vh, 660px);
+    height: 100%;
     transform: translateY(100vh);
     z-index: 2;
   }
@@ -408,7 +406,6 @@
 
   @media (max-width: 720px) {
     .craft-pin-wrap { height: 220vh; }
-    .craft-stage__media { height: 52vh; }
   }
 </style>
 </head>
@@ -649,6 +646,12 @@
   window.addEventListener('scroll', () => { if (!raf) { raf = true; requestAnimationFrame(tick); } }, { passive: true });
   tick();
 
+  // Scroll progress through the craft-rise pin (updated further down) —
+  // declared here so the mouse-trail below can read it: that hover effect
+  // belongs only to the plain-text phase of this section, not the video
+  // part, so it stops spawning once the video starts climbing.
+  let craftProgress = 0;
+
   // MOUSE-TRAIL IMAGE SECTION — faithful equivalent of modusprojects.nl's
   // hover-image-trail, built from scratch (their own trigger JS wasn't
   // reverse-engineerable, so this matches the measured visual result
@@ -695,7 +698,10 @@
       if (lastX === null) { lastX = e.clientX; lastY = e.clientY; return; }
       const dist = Math.hypot(e.clientX - lastX, e.clientY - lastY);
       if (dist > SPAWN_DISTANCE) {
-        spawnTrailCard(e.clientX, e.clientY);
+        // Only while the video-rise part of this section hasn't started
+        // climbing yet — the hover trail belongs to the plain wording,
+        // not the video-covered phase.
+        if (craftProgress < 0.05) spawnTrailCard(e.clientX, e.clientY);
         lastX = e.clientX;
         lastY = e.clientY;
       }
@@ -710,8 +716,15 @@
   // GSAP ScrollTrigger scrubs the band's own translateY off scroll
   // progress: at progress 0 it sits fully below the viewport; at
   // progress 1 it has risen into its resting position, covering the text.
+  // scrub is a number (not true) so the animation eases toward the actual
+  // scroll position with a short lag instead of snapping 1:1 to every
+  // scroll tick — that lag is what reads as "smooth" rather than
+  // mechanical. The text layer gets a complementary exit (fades and sinks
+  // slightly) so it visibly hands off to the video rather than just
+  // sitting there until it's covered.
   const craftClip = document.getElementById('craftClip');
   const craftPinWrap = document.getElementById('craftPinWrap');
+  const craftText = document.getElementById('craftText');
   const craftMediaLayer = document.getElementById('craftMediaLayer');
 
   if (craftClip && craftPinWrap && 'IntersectionObserver' in window) {
@@ -727,16 +740,21 @@
     io.observe(craftPinWrap);
   }
 
-  if (craftPinWrap && craftMediaLayer && window.gsap && window.ScrollTrigger) {
+  if (craftPinWrap && craftText && craftMediaLayer && window.gsap && window.ScrollTrigger) {
     gsap.registerPlugin(ScrollTrigger);
     ScrollTrigger.create({
       trigger: craftPinWrap,
       start: 'top top',
       end: 'bottom bottom',
-      scrub: true,
+      scrub: 0.7,
       onUpdate: (self) => {
         const p = self.progress;
+        craftProgress = p;
         gsap.set(craftMediaLayer, { y: `${(1 - p) * 100}vh` });
+        gsap.set(craftText, {
+          opacity: Math.max(0, 1 - p * 1.4),
+          y: p * 60
+        });
       }
     });
   }
