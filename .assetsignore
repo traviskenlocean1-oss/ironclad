@@ -6,3 +6,6 @@
 !.dev.vars.example
 .env*
 !.env.example
+
+# raw source photos — only the cropped trail-*.jpg files are referenced
+assets/img/trail/raw-*.jpg

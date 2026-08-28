@@ -32,7 +32,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@300;400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet" />
 
 <style>
   :root {
@@ -285,10 +285,86 @@
     .nav__links { display: none; }
   }
 
-  /* ---------- Blank ---------- */
-  .blank {
+  /* ---------- Section 2 — literal replica of modusprojects.nl's
+     "Onderscheidende afbouw" section (values measured off their live DOM,
+     see project memory): plain white block, centered serif headline over
+     a light-weight sans paragraph, with a mouse-driven image trail spread
+     across the section. Cards are invisible at rest and only appear as
+     the cursor crosses the section, per the reference behavior. ---------- */
+  .trail-section {
+    position: relative;
     background: var(--white);
-    min-height: 150vh;
+    padding: clamp(96px, 14vw, 180px) 24px;
+    overflow: hidden;
+  }
+
+  .trail-section__inner {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .trail-headline {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: clamp(2.2rem, 5.6vw, 4rem);
+    line-height: 1.1;
+    color: var(--black);
+  }
+
+  .trail-copy {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--black);
+    max-width: 620px;
+    margin: clamp(20px, 3vw, 28px) auto 0;
+  }
+
+  /* Trail cards — 192x256 (measured), sharp corners, object-fit: cover.
+     pointer-events: none on the container so cursor tracking on the
+     section itself is never blocked by a spawned card sitting on top. */
+  .trail-container {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .trail-card {
+    position: absolute;
+    width: 192px;
+    height: 256px;
+    margin-left: -96px;
+    margin-top: -128px;
+    opacity: 0;
+    transform: scale(0.85) rotate(var(--rot, 0deg));
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+
+  .trail-card.is-in {
+    opacity: 1;
+    transform: scale(1) rotate(var(--rot, 0deg));
+  }
+
+  .trail-card.is-out {
+    opacity: 0;
+    transform: scale(0.92) rotate(var(--rot, 0deg));
+  }
+
+  .trail-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+    display: block;
+  }
+
+  @media (max-width: 720px) {
+    .trail-section { padding: 72px 24px; }
   }
 </style>
 </head>
@@ -358,7 +434,19 @@
   </div>
 </section>
 
-<section class="blank" aria-hidden="true"></section>
+<section class="trail-section" id="trailSection">
+  <div class="trail-container" id="trailContainer" aria-hidden="true"></div>
+  <div class="trail-section__inner">
+    <h2 class="trail-headline">
+      Honest craftsmanship<br />
+      built for your next<br />
+      construction project.
+    </h2>
+    <p class="trail-copy">
+      We break from cookie-cutter construction with thoughtful planning and honest execution. As an extension of your vision, we manage every detail — from site prep and framing to finishes and final walkthrough — so nothing falls through the cracks.
+    </p>
+  </div>
+</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script>
@@ -500,6 +588,61 @@
 
   window.addEventListener('scroll', () => { if (!raf) { raf = true; requestAnimationFrame(tick); } }, { passive: true });
   tick();
+
+  // MOUSE-TRAIL IMAGE SECTION — faithful equivalent of modusprojects.nl's
+  // hover-image-trail, built from scratch (their own trigger JS wasn't
+  // reverse-engineerable, so this matches the measured visual result
+  // instead: 192x256 sharp-cornered cards, invisible at rest, spawning
+  // behind the cursor as it crosses the section and cycling through all
+  // 8 photos). Restricted to fine-pointer/hover-capable devices — a
+  // trail keyed off cursor movement has no equivalent on touch.
+  const trailSection = document.getElementById('trailSection');
+  const trailContainer = document.getElementById('trailContainer');
+  const trailImages = [
+    '39151681', '37627682', '5691533', '3818947',
+    '6790048', '8089172', '19666087', '30580640'
+  ].map(id => `/assets/img/trail/trail-${id}.jpg`);
+
+  if (trailSection && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    let trailIndex = 0;
+    let lastX = null, lastY = null;
+    const SPAWN_DISTANCE = 110;
+
+    function spawnTrailCard(clientX, clientY) {
+      const rect = trailSection.getBoundingClientRect();
+      const card = document.createElement('div');
+      card.className = 'trail-card';
+      card.style.left = `${clientX - rect.left}px`;
+      card.style.top = `${clientY - rect.top}px`;
+      card.style.setProperty('--rot', `${(Math.random() * 16 - 8).toFixed(2)}deg`);
+
+      const img = document.createElement('img');
+      img.src = trailImages[trailIndex % trailImages.length];
+      img.alt = '';
+      trailIndex++;
+      card.appendChild(img);
+      trailContainer.appendChild(card);
+
+      requestAnimationFrame(() => card.classList.add('is-in'));
+      setTimeout(() => {
+        card.classList.remove('is-in');
+        card.classList.add('is-out');
+        setTimeout(() => card.remove(), 400);
+      }, 650);
+    }
+
+    trailSection.addEventListener('mousemove', (e) => {
+      if (lastX === null) { lastX = e.clientX; lastY = e.clientY; return; }
+      const dist = Math.hypot(e.clientX - lastX, e.clientY - lastY);
+      if (dist > SPAWN_DISTANCE) {
+        spawnTrailCard(e.clientX, e.clientY);
+        lastX = e.clientX;
+        lastY = e.clientY;
+      }
+    });
+
+    trailSection.addEventListener('mouseleave', () => { lastX = null; lastY = null; });
+  }
 </script>
 
 </body>
