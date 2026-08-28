@@ -367,34 +367,6 @@
   @media (max-width: 720px) {
     .trail-section { padding: 72px 24px; }
   }
-
-  /* ---------- Video reveal — matches havenconstructions.com.au's layout:
-     a full-bleed video block positioned to overlap the tail end of the
-     section above it (not a scroll-linked pin — their site is a
-     Squarespace Fluid Engine canvas where blocks are simply placed to
-     overlap; the negative margin-top here reproduces that same layered
-     look with normal document flow). ---------- */
-  .video-reveal {
-    position: relative;
-    z-index: 3;
-    margin-top: -48vh;
-    height: 100vh;
-    height: 100svh;
-    overflow: hidden;
-    background: var(--black);
-  }
-
-  .video-reveal video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  @media (max-width: 720px) {
-    .video-reveal { margin-top: -22vh; height: 70vh; height: 70svh; }
-  }
 </style>
 </head>
 <body>
@@ -475,17 +447,6 @@
       We break from cookie-cutter construction with thoughtful planning and honest execution. As an extension of your vision, we manage every detail — from site prep and framing to finishes and final walkthrough — so nothing falls through the cracks.
     </p>
   </div>
-</section>
-
-<section class="video-reveal" id="videoReveal">
-  <video
-    id="revealVideo"
-    poster="/assets/img/craftsmanship-reveal-poster.jpg"
-    muted
-    loop
-    playsinline
-    preload="none"
-  ></video>
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
@@ -682,24 +643,6 @@
     });
 
     trailSection.addEventListener('mouseleave', () => { lastX = null; lastY = null; });
-  }
-
-  // VIDEO REVEAL — lazily loads and plays the craftsmanship-reveal video
-  // once the section is nearly in view, rather than fetching ~16MB on
-  // initial page load for a section far down the page.
-  const revealVideo = document.getElementById('revealVideo');
-  const videoReveal = document.getElementById('videoReveal');
-  if (revealVideo && videoReveal && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          revealVideo.src = '/assets/video/craftsmanship-reveal.mp4';
-          revealVideo.play().catch(() => {});
-          io.disconnect();
-        }
-      });
-    }, { rootMargin: '600px 0px' });
-    io.observe(videoReveal);
   }
 </script>
 
