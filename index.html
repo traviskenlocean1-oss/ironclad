@@ -358,12 +358,12 @@
     display: block;
   }
 
-  /* ---------- Craft crossfade — video fades IN ON TOP of the headline/
-     paragraph in the same screen position (not a separate stacked block).
-     A tall pin section (250vh) holds a sticky 100vh stage; GSAP
-     ScrollTrigger drives the text layer's opacity down and the video
-     layer's opacity up together as you scroll through it, then releases
-     into whatever follows. ---------- */
+  /* ---------- Craft rise — a full-width video band physically slides UP
+     from below the viewport and comes to rest directly over the headline/
+     paragraph (z-index above it), rather than fading in place. A tall pin
+     section (250vh) holds a sticky 100vh stage; GSAP ScrollTrigger scrubs
+     the band's vertical position (not opacity) off scroll progress, then
+     releases into whatever follows once it has fully arrived. ---------- */
   .craft-pin-wrap {
     position: relative;
     height: 250vh;
@@ -376,33 +376,39 @@
     height: 100svh;
     overflow: hidden;
     background: var(--white);
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
-  .craft-stage__layer {
+  .craft-stage__text {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1;
   }
 
   .craft-stage__media {
-    opacity: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 14vh;
+    width: 100%;
+    height: min(72vh, 660px);
+    transform: translateY(100vh);
+    z-index: 2;
   }
 
   .craft-stage__clip {
-    width: min(78vw, 960px);
-    height: min(62vh, 560px);
+    width: 100%;
+    height: 100%;
     object-fit: cover;
+    display: block;
     background: var(--black);
   }
 
   @media (max-width: 720px) {
     .craft-pin-wrap { height: 220vh; }
-    .craft-stage__clip { width: 90vw; height: 46vh; }
+    .craft-stage__media { height: 52vh; }
   }
 </style>
 </head>
@@ -475,7 +481,7 @@
 <section class="craft-pin-wrap" id="craftPinWrap">
   <div class="craft-stage" id="trailSection">
     <div class="trail-container" id="trailContainer" aria-hidden="true"></div>
-    <div class="craft-stage__layer craft-stage__text" id="craftText">
+    <div class="craft-stage__text" id="craftText">
       <div class="trail-section__inner">
         <h2 class="trail-headline">
           Honest craftsmanship<br />
@@ -487,7 +493,7 @@
         </p>
       </div>
     </div>
-    <div class="craft-stage__layer craft-stage__media" id="craftMediaLayer">
+    <div class="craft-stage__media" id="craftMediaLayer">
       <video
         class="craft-stage__clip"
         id="craftClip"
@@ -698,14 +704,14 @@
     trailSection.addEventListener('mouseleave', () => { lastX = null; lastY = null; });
   }
 
-  // CRAFT CROSSFADE — the video fades IN ON TOP of the headline/paragraph
-  // in the same screen position as you scroll through a pinned section,
-  // rather than being a separate block stacked below. GSAP ScrollTrigger
-  // pins #trailSection for the height of #craftPinWrap (250vh) and scrubs
-  // both layers' opacity directly off scroll progress through that range.
+  // CRAFT RISE — a full-width video band physically climbs up from below
+  // the viewport and settles on top of the headline/paragraph (covering
+  // it via z-index, not opacity) as you scroll through a pinned section.
+  // GSAP ScrollTrigger scrubs the band's own translateY off scroll
+  // progress: at progress 0 it sits fully below the viewport; at
+  // progress 1 it has risen into its resting position, covering the text.
   const craftClip = document.getElementById('craftClip');
   const craftPinWrap = document.getElementById('craftPinWrap');
-  const craftText = document.getElementById('craftText');
   const craftMediaLayer = document.getElementById('craftMediaLayer');
 
   if (craftClip && craftPinWrap && 'IntersectionObserver' in window) {
@@ -721,7 +727,7 @@
     io.observe(craftPinWrap);
   }
 
-  if (craftPinWrap && craftText && craftMediaLayer && window.gsap && window.ScrollTrigger) {
+  if (craftPinWrap && craftMediaLayer && window.gsap && window.ScrollTrigger) {
     gsap.registerPlugin(ScrollTrigger);
     ScrollTrigger.create({
       trigger: craftPinWrap,
@@ -730,8 +736,7 @@
       scrub: true,
       onUpdate: (self) => {
         const p = self.progress;
-        gsap.set(craftText, { opacity: 1 - p });
-        gsap.set(craftMediaLayer, { opacity: p });
+        gsap.set(craftMediaLayer, { y: `${(1 - p) * 100}vh` });
       }
     });
   }
