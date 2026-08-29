@@ -460,8 +460,13 @@
     display: flex;
     align-items: center;
     gap: 20px;
+    width: 100%;
     padding: 22px 0;
+    border: none;
     border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+    background: none;
+    text-align: left;
+    cursor: pointer;
   }
 
   .services__row:first-child { padding-top: 0; }
@@ -514,6 +519,117 @@
     .services__row img { width: 60px; height: 60px; }
     .services__row-label { font-size: 1.1rem; }
     .services__deco { width: 48px; opacity: 0.6; }
+  }
+
+  /* ---------- Services popup — literal replica of modusprojects.nl's
+     right-side drawer (measured off their live DOM): fixed-width panel
+     slides in from the right over a dim overlay, a continuously drifting
+     image carousel at top, then headline/paragraph/CTA on white. Panel
+     stays in the DOM permanently and is repositioned off-screen with a
+     transform (not display:none) so GSAP can animate it smoothly. ---------- */
+  .services-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    pointer-events: none;
+  }
+
+  .services-popup__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+  }
+
+  .services-popup__panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(480px, 100vw);
+    background: var(--white);
+    transform: translateX(100%);
+    overflow-y: auto;
+  }
+
+  .services-popup__close {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 2;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(219, 226, 229, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .services-popup__close svg { width: 18px; height: 18px; }
+
+  .services-popup__slider {
+    position: relative;
+    height: 224px;
+    overflow: hidden;
+  }
+
+  .services-popup__slider-track {
+    display: flex;
+    height: 100%;
+  }
+
+  .services-popup__slider-track img {
+    width: 224px;
+    height: 224px;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+  }
+
+  .services-popup__content {
+    padding: 32px;
+  }
+
+  .services-popup__headline {
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 1.9rem;
+    color: var(--black);
+  }
+
+  .services-popup__copy {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(10, 10, 10, 0.7);
+    margin-top: 16px;
+  }
+
+  .services-popup__cta {
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    margin-top: 24px;
+    padding: 0 24px;
+    background: var(--green);
+    color: var(--white);
+    text-decoration: none;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  .services-popup__cta:hover { background: var(--green-light); }
+
+  @media (max-width: 480px) {
+    .services-popup__slider { height: 168px; }
+    .services-popup__slider-track img { width: 168px; height: 168px; }
   }
 </style>
 </head>
@@ -652,37 +768,54 @@
       </p>
     </div>
     <div class="services__list" role="list">
-      <div class="services__row">
+      <button class="services__row" type="button" data-service="new-builds">
         <img src="/assets/img/trail/service-new-builds.jpg" alt="" loading="lazy" />
         <span class="services__row-label">New Builds</span>
         <span class="services__plus" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
         </span>
-      </div>
-      <div class="services__row">
+      </button>
+      <button class="services__row" type="button" data-service="additions">
         <img src="/assets/img/trail/service-additions.jpg" alt="" loading="lazy" />
         <span class="services__row-label">Additions</span>
         <span class="services__plus" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
         </span>
-      </div>
-      <div class="services__row">
+      </button>
+      <button class="services__row" type="button" data-service="renovations">
         <img src="/assets/img/trail/service-renovations.jpg" alt="" loading="lazy" />
         <span class="services__row-label">Renovations</span>
         <span class="services__plus" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
         </span>
-      </div>
-      <div class="services__row">
+      </button>
+      <button class="services__row" type="button" data-service="framing">
         <img src="/assets/img/trail/service-framing.jpg" alt="" loading="lazy" />
         <span class="services__row-label">Framing</span>
         <span class="services__plus" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
         </span>
-      </div>
+      </button>
     </div>
   </div>
 </section>
+
+<div class="services-popup" id="servicesPopup" aria-hidden="true">
+  <div class="services-popup__overlay" id="servicesPopupOverlay"></div>
+  <div class="services-popup__panel" id="servicesPopupPanel">
+    <button class="services-popup__close" id="servicesPopupClose" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+    </button>
+    <div class="services-popup__slider" id="servicesPopupSlider">
+      <div class="services-popup__slider-track" id="servicesPopupTrack"></div>
+    </div>
+    <div class="services-popup__content">
+      <h3 class="services-popup__headline" id="servicesPopupHeadline"></h3>
+      <p class="services-popup__copy" id="servicesPopupCopy"></p>
+      <a class="services-popup__cta" href="#">Get A Quote</a>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -936,6 +1069,106 @@
           y: p * 60
         });
       }
+    });
+  }
+
+  // SERVICES POPUP — literal replica of modusprojects.nl's right-side
+  // drawer: click a service row, panel slides in from the right over a
+  // dimming overlay (GSAP, matches their signature smooth easing), with a
+  // continuously drifting image carousel at the top. Their version uses
+  // Framer Motion (confirmed via inline translate3d styles on their live
+  // DOM); GSAP does the same job here since it's already loaded.
+  const servicesData = {
+    'new-builds': {
+      headline: 'New Builds',
+      copy: 'We manage every phase of a ground-up build — site prep, foundation, framing, and finishes — so your new home comes together on schedule and on budget.',
+      images: ['popup-new-builds-1', 'popup-new-builds-2', 'popup-new-builds-3', 'popup-new-builds-4', 'popup-new-builds-5']
+    },
+    'additions': {
+      headline: 'Additions',
+      copy: "Expanding your home shouldn't mean disrupting your life. We plan additions that match your home's existing structure and style, then execute cleanly from permit to final walkthrough.",
+      images: ['popup-additions-1', 'popup-additions-2', 'popup-additions-3', 'popup-additions-4', 'popup-additions-5']
+    },
+    'renovations': {
+      headline: 'Renovations',
+      copy: 'From a single room to a full remodel, we handle the demo, the trades, and the finish work — so you get a space that feels new without the runaround.',
+      images: ['popup-renovations-1', 'popup-renovations-2', 'popup-renovations-3', 'popup-renovations-4', 'popup-renovations-5']
+    },
+    'framing': {
+      headline: 'Framing',
+      copy: 'The frame is what everything else depends on. Our crews build square, level, plumb structures using techniques that hold up for decades, not just for inspection.',
+      images: ['popup-framing-1', 'popup-framing-2', 'popup-framing-3', 'popup-framing-4', 'popup-framing-5']
+    }
+  };
+
+  const servicesPopup = document.getElementById('servicesPopup');
+  const servicesPopupOverlay = document.getElementById('servicesPopupOverlay');
+  const servicesPopupPanel = document.getElementById('servicesPopupPanel');
+  const servicesPopupClose = document.getElementById('servicesPopupClose');
+  const servicesPopupHeadline = document.getElementById('servicesPopupHeadline');
+  const servicesPopupCopy = document.getElementById('servicesPopupCopy');
+  const servicesPopupTrack = document.getElementById('servicesPopupTrack');
+
+  if (servicesPopup && servicesPopupPanel) {
+    let driftTween = null;
+
+    function startDrift() {
+      if (driftTween) driftTween.kill();
+      const overflow = servicesPopupTrack.scrollWidth - servicesPopupTrack.parentElement.offsetWidth;
+      if (overflow <= 0) return;
+      gsap.set(servicesPopupTrack, { x: 0 });
+      driftTween = gsap.to(servicesPopupTrack, {
+        x: -overflow,
+        duration: 3,
+        ease: 'sine.inOut',
+        repeat: -1,
+        yoyo: true
+      });
+    }
+
+    function openServicesPopup(key) {
+      const data = servicesData[key];
+      if (!data) return;
+      servicesPopupHeadline.textContent = data.headline;
+      servicesPopupCopy.textContent = data.copy;
+      servicesPopupTrack.innerHTML = data.images
+        .map(id => `<img src="/assets/img/trail/${id}.jpg" alt="" loading="lazy" />`)
+        .join('');
+
+      servicesPopup.setAttribute('aria-hidden', 'false');
+      servicesPopup.style.pointerEvents = 'auto';
+      gsap.killTweensOf([servicesPopupOverlay, servicesPopupPanel]);
+      gsap.to(servicesPopupOverlay, { opacity: 1, duration: 0.4, ease: 'power2.out' });
+      gsap.to(servicesPopupPanel, {
+        x: '0%',
+        duration: 0.7,
+        ease: 'power3.out',
+        onComplete: startDrift
+      });
+    }
+
+    function closeServicesPopup() {
+      if (driftTween) driftTween.kill();
+      gsap.killTweensOf([servicesPopupOverlay, servicesPopupPanel]);
+      gsap.to(servicesPopupOverlay, { opacity: 0, duration: 0.35, ease: 'power2.in' });
+      gsap.to(servicesPopupPanel, {
+        x: '100%',
+        duration: 0.55,
+        ease: 'power3.in',
+        onComplete: () => {
+          servicesPopup.setAttribute('aria-hidden', 'true');
+          servicesPopup.style.pointerEvents = 'none';
+        }
+      });
+    }
+
+    document.querySelectorAll('.services__row').forEach(row => {
+      row.addEventListener('click', () => openServicesPopup(row.dataset.service));
+    });
+    servicesPopupClose.addEventListener('click', closeServicesPopup);
+    servicesPopupOverlay.addEventListener('click', closeServicesPopup);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && servicesPopup.getAttribute('aria-hidden') === 'false') closeServicesPopup();
     });
   }
 </script>
