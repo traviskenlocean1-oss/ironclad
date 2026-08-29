@@ -654,6 +654,133 @@
     .values__body { grid-column: 1 / 13; }
   }
 
+  /* ---------- Standards — literal replica of modusprojects.nl's "Drie M's.
+     één standaard." section (measured off their live DOM): an intro
+     headline over three equal cards in a row, each with a headline,
+     paragraph, a big bottom-right index number, and a decorative graphic
+     bleeding off the card's bottom edge. The "cards moving up" the user
+     pointed out isn't a permanent stagger — all three cards are the same
+     size in a plain 3-column grid — it's a one-time scroll-entrance reveal
+     where every card's translateY eases from a different multiple of its
+     own height (10% / 22.5% / 45%, measured directly off their inline
+     styles at rest vs. fully scrolled) down to 0 under the same scroll
+     range, so the lower cards travel further and arrive with a slight
+     stagger. Card colors are Ironclad's own (green / gray / white) in
+     place of Modus's (dark / gray / orange), each keeping that position's
+     original decorative pattern shape recolored to fit. ---------- */
+  .standards {
+    background: var(--white);
+    padding: clamp(64px, 10vw, 96px) 24px;
+  }
+
+  .standards__container {
+    max-width: 1450px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(32px, 5vw, 48px);
+  }
+
+  .standards__intro {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .standards__headline {
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    line-height: 1.15;
+    color: var(--black);
+  }
+
+  .standards__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .standard-card {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 2 / 3;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .standard-card--green {
+    background: var(--green);
+    color: var(--white);
+  }
+
+  .standard-card--gray {
+    background: #5c6266;
+    color: var(--white);
+  }
+
+  .standard-card--white {
+    background: var(--white);
+    color: var(--black);
+    border: 1px solid rgba(10, 10, 10, 0.1);
+  }
+
+  .standard-card__title {
+    position: relative;
+    z-index: 1;
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: clamp(1.2rem, 1.6vw, 1.5rem);
+    line-height: 1.15;
+  }
+
+  .standard-card__copy {
+    position: relative;
+    z-index: 1;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: 1rem;
+    line-height: 1.7;
+    opacity: 0.75;
+    margin-top: 16px;
+    max-width: 34ch;
+  }
+
+  .standard-card__no {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    z-index: 1;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    line-height: 1;
+  }
+
+  .standard-card__graphic {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -16px;
+    height: 42%;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .standard-card__graphic svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  @media (max-width: 900px) {
+    .standards__grid { grid-template-columns: 1fr; }
+    .standard-card { aspect-ratio: auto; min-height: 340px; }
+  }
+
   /* ---------- Services popup — literal replica of modusprojects.nl's
      right-side drawer (measured off their live DOM): fixed-width panel
      slides in from the right over a dim overlay, a continuously drifting
@@ -951,6 +1078,111 @@
       <div class="values__media" id="valuesMedia">
         <div class="values__media-inner" id="valuesMediaInner">
           <img src="/assets/img/trail/values-guiding.jpg" alt="" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="standards" id="standards">
+  <div class="standards__container">
+    <div class="standards__intro">
+      <h2 class="standards__headline">What you can count on.</h2>
+    </div>
+    <div class="standards__grid" id="standardsGrid">
+      <div class="standard-card standard-card--green" data-card="1">
+        <h3 class="standard-card__title">Craftsmanship</h3>
+        <p class="standard-card__copy">
+          We don't cut corners to hit a number. Every plan is built around what the home actually needs, using direct relationships with trusted suppliers to keep quality high and pricing honest.
+        </p>
+        <div class="standard-card__no">01</div>
+        <div class="standard-card__graphic" aria-hidden="true">
+          <svg viewBox="0 0 480 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="barsGreen" x1="0" y1="300" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#ffffff" />
+                <stop offset="0.85" stop-color="#ffffff" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <g opacity="0.55">
+              <rect x="0" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="34" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="68" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="102" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="136" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="170" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="204" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="238" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="272" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="306" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="340" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="374" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="408" y="0" width="26" height="300" fill="url(#barsGreen)" />
+              <rect x="442" y="0" width="26" height="300" fill="url(#barsGreen)" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="standard-card standard-card--gray" data-card="2">
+        <h3 class="standard-card__title">Momentum</h3>
+        <p class="standard-card__copy">
+          We keep design, materials, and scheduling under one roof. Every delivery is timed to the build schedule, with one point of contact managing the process start to finish — so your project keeps moving.
+        </p>
+        <div class="standard-card__no">02</div>
+        <div class="standard-card__graphic" aria-hidden="true">
+          <svg viewBox="0 0 480 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <mask id="barsMaskGray">
+              <rect x="0" y="0" width="26" height="300" fill="#fff" />
+              <rect x="34" y="0" width="26" height="300" fill="#fff" />
+              <rect x="68" y="0" width="26" height="300" fill="#fff" />
+              <rect x="102" y="0" width="26" height="300" fill="#fff" />
+              <rect x="136" y="0" width="26" height="300" fill="#fff" />
+              <rect x="170" y="0" width="26" height="300" fill="#fff" />
+              <rect x="204" y="0" width="26" height="300" fill="#fff" />
+              <rect x="238" y="0" width="26" height="300" fill="#fff" />
+              <rect x="272" y="0" width="26" height="300" fill="#fff" />
+              <rect x="306" y="0" width="26" height="300" fill="#fff" />
+              <rect x="340" y="0" width="26" height="300" fill="#fff" />
+              <rect x="374" y="0" width="26" height="300" fill="#fff" />
+              <rect x="408" y="0" width="26" height="300" fill="#fff" />
+              <rect x="442" y="0" width="26" height="300" fill="#fff" />
+            </mask>
+            <g mask="url(#barsMaskGray)">
+              <circle cx="240" cy="300" r="270" fill="#ffffff" opacity="0.5" />
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div class="standard-card standard-card--white" data-card="3">
+        <h3 class="standard-card__title">Total Certainty</h3>
+        <p class="standard-card__copy">
+          Long-standing relationships with our trade partners and suppliers mean materials show up when they're supposed to. That reliability limits risk and keeps your timeline from slipping.
+        </p>
+        <div class="standard-card__no">03</div>
+        <div class="standard-card__graphic" aria-hidden="true">
+          <svg viewBox="0 0 480 300" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <mask id="barsMaskWhite">
+              <rect x="0" y="0" width="26" height="300" fill="#fff" />
+              <rect x="34" y="0" width="26" height="300" fill="#fff" />
+              <rect x="68" y="0" width="26" height="300" fill="#fff" />
+              <rect x="102" y="0" width="26" height="300" fill="#fff" />
+              <rect x="136" y="0" width="26" height="300" fill="#fff" />
+              <rect x="170" y="0" width="26" height="300" fill="#fff" />
+              <rect x="204" y="0" width="26" height="300" fill="#fff" />
+              <rect x="238" y="0" width="26" height="300" fill="#fff" />
+              <rect x="272" y="0" width="26" height="300" fill="#fff" />
+              <rect x="306" y="0" width="26" height="300" fill="#fff" />
+              <rect x="340" y="0" width="26" height="300" fill="#fff" />
+              <rect x="374" y="0" width="26" height="300" fill="#fff" />
+              <rect x="408" y="0" width="26" height="300" fill="#fff" />
+              <rect x="442" y="0" width="26" height="300" fill="#fff" />
+            </mask>
+            <g mask="url(#barsMaskWhite)">
+              <polygon points="-60,180 480,-40 400,340 -60,180" fill="#1a3f2e" opacity="0.12" />
+            </g>
+          </svg>
         </div>
       </div>
     </div>
@@ -1315,6 +1547,33 @@
       keyframes: { yPercent: [10, 0, 10] },
       ease: 'none',
       duration: 1
+    });
+  }
+
+  // STANDARDS — literal replica of modusprojects.nl's "Drie M's. één
+  // standaard." card row. Measured off their live DOM: the three cards
+  // aren't permanently staggered (all three sit in a plain equal-width grid
+  // row once fully settled) — the "cards rising" look is a one-time scroll
+  // entrance where each card's translateY eases from a different multiple
+  // of its own height (10% / 22.5% / 45%, i.e. 1x / 2.25x / 4.5x the same
+  // base amount) down to 0 across the same scroll range, so lower cards
+  // travel further and arrive with a slight stagger rather than all
+  // together. One ScrollTrigger drives all three off a shared progress.
+  const standardsGrid = document.getElementById('standardsGrid');
+  if (standardsGrid && window.gsap && window.ScrollTrigger) {
+    const cards = standardsGrid.querySelectorAll('.standard-card');
+    const multipliers = [10, 22.5, 45];
+    gsap.set(cards, { yPercent: (i) => multipliers[i] });
+    ScrollTrigger.create({
+      trigger: standardsGrid,
+      start: 'top bottom',
+      end: 'top 40%',
+      scrub: 0.6,
+      onUpdate: (self) => {
+        cards.forEach((card, i) => {
+          gsap.set(card, { yPercent: (1 - self.progress) * multipliers[i] });
+        });
+      }
     });
   }
 
