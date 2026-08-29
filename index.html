@@ -607,11 +607,27 @@
     margin-top: 20px;
   }
 
+  /* Word-by-word entrance reveal for the headline + paragraphs, matching
+     the per-word translateY+rotate technique measured on Haven's own DOM
+     (their words sit at rest around translateY(83-100%) rotate(8-10deg)
+     until scrolled into view, then settle to 0/0deg). Split at runtime via
+     splitWords() below rather than hardcoding spans in markup. */
+  .reveal-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+  }
+
+  .reveal-word__inner {
+    display: inline-block;
+    transform-origin: left bottom;
+  }
+
   .values__media {
     position: relative;
     overflow: hidden;
-    border-radius: 8px;
-    aspect-ratio: 1.155 / 1;
+    border-radius: 0;
+    aspect-ratio: 25 / 26;
     margin-top: clamp(40px, 6vw, 64px);
     background: #e5e5e5;
   }
@@ -1232,6 +1248,57 @@
       });
     }, { threshold: 0.4 });
     io.observe(valuesDivider);
+  }
+
+  // Word-by-word entrance for the headline + paragraphs, so the text comes
+  // in on scroll rather than just being there. Splits each element's text
+  // into individually-clipped word spans (each in an overflow:hidden outer
+  // span so a transform on the inner span reveals it), then staggers them
+  // in with GSAP once the section scrolls into view. One-shot, same pattern
+  // as the divider reveal above.
+  function splitWords(el) {
+    const words = el.textContent.trim().split(/\s+/);
+    el.innerHTML = words
+      .map((w) => `<span class="reveal-word"><span class="reveal-word__inner">${w}</span></span>`)
+      .join(' ');
+    return el.querySelectorAll('.reveal-word__inner');
+  }
+
+  const valuesHeadline = document.querySelector('.values__headline');
+  const valuesCopyEls = document.querySelectorAll('.values__copy');
+  if (valuesHeadline && valuesCopyEls.length && window.gsap && 'IntersectionObserver' in window) {
+    const headlineWords = splitWords(valuesHeadline);
+    const copyWords = Array.from(valuesCopyEls).flatMap((p) => Array.from(splitWords(p)));
+    // Set the resting (hidden) state through GSAP itself rather than a CSS
+    // transform shorthand -- GSAP owns yPercent/rotate as separate tracked
+    // properties, so a later .to({yPercent:0}) tween interpolates cleanly.
+    // (A CSS-declared `transform: translateY(115%) rotate(8deg)` resolves to
+    // a plain matrix in getComputedStyle, which GSAP can't decompose back
+    // into yPercent + rotate, so the reveal tween silently never moves.)
+    gsap.set([...headlineWords, ...copyWords], { yPercent: 115, rotate: 8 });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const tl = gsap.timeline();
+          tl.to(headlineWords, {
+            yPercent: 0,
+            rotate: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            stagger: 0.025
+          }).to(copyWords, {
+            yPercent: 0,
+            rotate: 0,
+            duration: 0.7,
+            ease: 'power3.out',
+            stagger: 0.008
+          }, '-=0.55');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(document.querySelector('.values__container'));
   }
 
   const valuesMedia = document.getElementById('valuesMedia');
