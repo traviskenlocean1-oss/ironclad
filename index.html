@@ -781,6 +781,64 @@
     .standard-card { aspect-ratio: auto; min-height: 340px; }
   }
 
+  /* ---------- Org intro — literal replica of modusprojects.nl's "Voor
+     project-organisaties in vastgoed & bouw" section (measured off their
+     live DOM): plain two-column row, 1450px container, two equal 685px
+     columns with an 80px gap (685*2+80=1450). Headline uses their same
+     Jubilee Silver -> Instrument Sans uppercase substitution already used
+     sitewide; paragraph at 70%-opacity black, matching their own measured
+     color(srgb 0 0 0 / 0.7). No reveal on the photo itself -- their DOM has
+     a bare <img> with no wrapper transform, unlike the guiding-values photo
+     which does parallax. ---------- */
+  .org-intro {
+    background: var(--white);
+    padding: clamp(64px, 10vw, 96px) 24px;
+  }
+
+  .org-intro__container {
+    max-width: 1450px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(32px, 6vw, 80px);
+  }
+
+  .org-intro__headline {
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: clamp(2.2rem, 4.2vw, 3.6rem);
+    line-height: 1.1;
+    color: var(--black);
+  }
+
+  .org-intro__copy {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: rgba(10, 10, 10, 0.7);
+    margin-top: 24px;
+    max-width: 46ch;
+  }
+
+  .org-intro__media {
+    overflow: hidden;
+    border-radius: 0;
+    aspect-ratio: 685 / 756;
+  }
+
+  .org-intro__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media (max-width: 900px) {
+    .org-intro__container { grid-template-columns: 1fr; }
+  }
+
   /* ---------- Services popup — literal replica of modusprojects.nl's
      right-side drawer (measured off their live DOM): fixed-width panel
      slides in from the right over a dim overlay, a continuously drifting
@@ -1189,6 +1247,20 @@
   </div>
 </section>
 
+<section class="org-intro" id="orgIntro">
+  <div class="org-intro__container">
+    <div>
+      <h2 class="org-intro__headline">For homeowners who want it done right.</h2>
+      <p class="org-intro__copy">
+        Ironclad works directly with homeowners planning a new build, an addition, or a full renovation. From the first walkthrough to the final coat of paint, we stay hands-on so nothing gets lost between the plan and the finished home.
+      </p>
+    </div>
+    <div class="org-intro__media">
+      <img src="/assets/img/trail/org-intro.jpg" alt="" loading="lazy" />
+    </div>
+  </div>
+</section>
+
 <div class="services-popup" id="servicesPopup" aria-hidden="true">
   <div class="services-popup__overlay" id="servicesPopupOverlay"></div>
   <div class="services-popup__panel" id="servicesPopupPanel">
@@ -1575,6 +1647,40 @@
         });
       }
     });
+  }
+
+  // ORG INTRO — literal replica of modusprojects.nl's "Voor project-
+  // organisaties in vastgoed & bouw" section. Same word-by-word reveal
+  // technique as the values section above, reusing splitWords().
+  const orgHeadline = document.querySelector('.org-intro__headline');
+  const orgCopy = document.querySelector('.org-intro__copy');
+  if (orgHeadline && orgCopy && window.gsap && 'IntersectionObserver' in window) {
+    const orgHeadlineWords = splitWords(orgHeadline);
+    const orgCopyWords = splitWords(orgCopy);
+    gsap.set([...orgHeadlineWords, ...orgCopyWords], { yPercent: 115, rotate: 8 });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const tl = gsap.timeline();
+          tl.to(orgHeadlineWords, {
+            yPercent: 0,
+            rotate: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            stagger: 0.025
+          }).to(orgCopyWords, {
+            yPercent: 0,
+            rotate: 0,
+            duration: 0.7,
+            ease: 'power3.out',
+            stagger: 0.008
+          }, '-=0.55');
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(document.querySelector('.org-intro__container'));
   }
 
   // SERVICES POPUP — literal replica of modusprojects.nl's right-side
