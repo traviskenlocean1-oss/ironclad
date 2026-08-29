@@ -521,6 +521,123 @@
     .services__deco { width: 48px; opacity: 0.6; }
   }
 
+  /* ---------- Values — literal replica of havenconstructions.com.au's
+     "Our guiding values" section (measured off their live DOM, a custom
+     Next.js site, not Squarespace despite similar class naming): headline
+     row, an entrance-reveal divider line, then a label column ("Philosophy")
+     offset from a paragraph+image column further right. The image's on-
+     scroll motion looked like a subtle zoom, but the actual DOM mechanic is
+     a pure vertical parallax — an oversized (110%-height) inner layer inside
+     an overflow:hidden frame, translated via GSAP ScrollTrigger scrub as a
+     triangle (max offset entering/exiting, ~0 at viewport center) — no scale
+     transform anywhere in the chain. Reproduced that exact mechanic rather
+     than a fake scale, since it's what actually produces the effect. ---------- */
+  .values {
+    background: var(--white);
+    padding: clamp(64px, 10vw, 96px) 24px clamp(80px, 12vw, 120px);
+  }
+
+  .values__container {
+    max-width: 1450px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: clamp(16px, 2vw, 32px);
+  }
+
+  .values__headline {
+    grid-column: 1 / 9;
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: clamp(2rem, 3.4vw, 2.8rem);
+    line-height: 1.15;
+    color: var(--black);
+  }
+
+  .values__divider {
+    grid-column: 1 / 13;
+    height: 1px;
+    background: rgba(10, 10, 10, 0.15);
+    margin: clamp(32px, 5vw, 56px) 0;
+    transform: scaleX(0);
+    transform-origin: left center;
+    opacity: 0;
+    transition: transform 1.1s cubic-bezier(0.16, 1, 0.3, 1), opacity 1.1s ease;
+  }
+
+  .values__divider.is-in {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  .values__label {
+    grid-column: 1 / 4;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--black);
+  }
+
+  .values__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
+
+  .values__body {
+    grid-column: 6 / 12;
+  }
+
+  .values__copy {
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    font-size: 1.15rem;
+    line-height: 1.55;
+    color: var(--black);
+  }
+
+  .values__copy + .values__copy {
+    margin-top: 20px;
+  }
+
+  .values__media {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    aspect-ratio: 1.155 / 1;
+    margin-top: clamp(40px, 6vw, 64px);
+    background: #e5e5e5;
+  }
+
+  .values__media-inner {
+    position: absolute;
+    left: 0;
+    top: -5%;
+    width: 100%;
+    height: 110%;
+    will-change: transform;
+  }
+
+  .values__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  @media (max-width: 900px) {
+    .values__headline { grid-column: 1 / 13; }
+    .values__label { grid-column: 1 / 13; margin-bottom: 20px; }
+    .values__body { grid-column: 1 / 13; }
+  }
+
   /* ---------- Services popup — literal replica of modusprojects.nl's
      right-side drawer (measured off their live DOM): fixed-width panel
      slides in from the right over a dim overlay, a continuously drifting
@@ -800,6 +917,30 @@
   </div>
 </section>
 
+<section class="values" id="values">
+  <div class="values__container">
+    <h2 class="values__headline">Built with the same care as if it were our own home.</h2>
+    <div class="values__divider" id="valuesDivider" aria-hidden="true"></div>
+    <div class="values__label">
+      <span class="values__dot" aria-hidden="true"></span>
+      Philosophy
+    </div>
+    <div class="values__body">
+      <p class="values__copy">
+        Every build starts with a plan and ends with a walkthrough we're proud to stand behind. We treat each job site the way we'd want our own home treated — clean, careful, and done right the first time. No shortcuts, no guesswork, no leaving a mess behind.
+      </p>
+      <p class="values__copy">
+        That's the standard our name is built on — honest work, straightforward pricing, and a crew that shows up when we say we will.
+      </p>
+      <div class="values__media" id="valuesMedia">
+        <div class="values__media-inner" id="valuesMediaInner">
+          <img src="/assets/img/trail/values-guiding.jpg" alt="" loading="lazy" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <div class="services-popup" id="servicesPopup" aria-hidden="true">
   <div class="services-popup__overlay" id="servicesPopupOverlay"></div>
   <div class="services-popup__panel" id="servicesPopupPanel">
@@ -1069,6 +1210,44 @@
           y: p * 60
         });
       }
+    });
+  }
+
+  // VALUES — literal replica of havenconstructions.com.au's "Our guiding
+  // values" section. Divider line does a one-shot reveal (scaleX + opacity)
+  // when it enters view. The image's on-scroll motion is a pure vertical
+  // parallax, not a scale: an oversized inner layer (110% height, -5% top)
+  // is translated on a triangle curve — max offset while entering/exiting,
+  // easing down to ~0 as the image crosses the viewport center — matching
+  // the exact mechanic measured off their live DOM (no transform: scale
+  // anywhere in their chain either).
+  const valuesDivider = document.getElementById('valuesDivider');
+  if (valuesDivider && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          valuesDivider.classList.add('is-in');
+          io.unobserve(valuesDivider);
+        }
+      });
+    }, { threshold: 0.4 });
+    io.observe(valuesDivider);
+  }
+
+  const valuesMedia = document.getElementById('valuesMedia');
+  const valuesMediaInner = document.getElementById('valuesMediaInner');
+  if (valuesMedia && valuesMediaInner && window.gsap && window.ScrollTrigger) {
+    gsap.timeline({
+      scrollTrigger: {
+        trigger: valuesMedia,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: 0.6
+      }
+    }).to(valuesMediaInner, {
+      keyframes: { yPercent: [10, 0, 10] },
+      ease: 'none',
+      duration: 1
     });
   }
 
