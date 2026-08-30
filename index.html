@@ -1120,6 +1120,186 @@
     .cta-footer__container { min-height: 0; }
   }
 
+  /* ---------- Site footer — literal replica of havenconstructions.com.au's
+     final footer (measured off their live DOM via Puppeteer, scrolling in
+     real ~100px steps with waits between reads -- an instant scrollTo jump
+     doesn't give their smooth-scroll library time to catch up, so a fast
+     synchronous scan reads stale/frozen values). Two independent
+     scroll-scrubbed effects, both tied directly to scroll position (not a
+     one-shot spring): (1) the whole nav+card block parallaxes from
+     translateY(-220px) up to 0 as the footer enters the viewport, (2) their
+     "Haven" logotype is 5 separate SVG letter-paths, each resting at
+     translateY(300px) and easing to 0, staggered so the LEFTMOST letter
+     arrives first and the RIGHTMOST arrives last (a left-to-right reading-
+     order cascade) even though their DOM lists the paths right-to-left.
+     Reproduced the mechanic with Ironclad's own "IRONCLAD" wordmark as real
+     text split into letters -- not their custom logotype artwork, which is
+     bespoke-drawn brand IP, same reasoning as never rehosting a paid
+     webfont file for an unrelated site. Navy background (rgb(12,56,141)) ->
+     Ironclad green per explicit instruction; same nav+project-card+
+     wordmark+copyright layout positions, different content throughout. ---------- */
+  .site-footer {
+    position: relative;
+    background: var(--green);
+    color: var(--white);
+    overflow: hidden;
+    padding: clamp(48px, 8vw, 90px) 24px clamp(24px, 3vw, 40px);
+  }
+
+  .site-footer__inner {
+    position: relative;
+    max-width: 1450px;
+    margin: 0 auto;
+  }
+
+  .site-footer__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 40px;
+  }
+
+  .site-footer__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 20px;
+  }
+
+  .site-footer__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--white);
+    flex-shrink: 0;
+  }
+
+  .site-footer__logo img {
+    height: 40px;
+    width: auto;
+    display: block;
+    margin-bottom: 22px;
+  }
+
+  .site-footer__navList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    list-style: none;
+  }
+
+  .site-footer__navList a,
+  .site-footer__social a {
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.95rem;
+    color: var(--white);
+    text-decoration: none;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+  }
+
+  .site-footer__navList a:hover,
+  .site-footer__social a:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
+  .site-footer__social {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: clamp(0px, 2vw, 34px);
+  }
+
+  .site-footer__project {
+    width: min(320px, 100%);
+  }
+
+  .site-footer__card {
+    display: block;
+    text-decoration: none;
+    color: var(--white);
+  }
+
+  .site-footer__card-media {
+    position: relative;
+    aspect-ratio: 362 / 202;
+    overflow: hidden;
+  }
+
+  .site-footer__card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .site-footer__card:hover .site-footer__card-media img {
+    transform: scale(1.04);
+  }
+
+  .site-footer__card-text {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+  }
+
+  .site-footer__card-heading {
+    font-weight: 500;
+  }
+
+  .site-footer__card-date {
+    opacity: 0.7;
+  }
+
+  .site-footer__wordmark {
+    display: block;
+    white-space: nowrap;
+    margin-top: clamp(24px, 6vw, 56px);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(3.2rem, 15vw, 12.5rem);
+    line-height: 0.92;
+    color: var(--white);
+    text-align: center;
+  }
+
+  .wordmark-letter {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+  }
+
+  .wordmark-letter__inner {
+    display: inline-block;
+  }
+
+  .site-footer__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: clamp(24px, 4vw, 40px);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .site-footer__row a { color: inherit; }
+
+  @media (max-width: 720px) {
+    .site-footer__top { flex-direction: column; }
+  }
+
   /* ---------- Services popup — literal replica of modusprojects.nl's
      right-side drawer (measured off their live DOM): fixed-width panel
      slides in from the right over a dim overlay, a continuously drifting
@@ -1619,6 +1799,58 @@
   </div>
 </section>
 
+<footer class="site-footer" id="siteFooter">
+  <div class="site-footer__inner" id="siteFooterInner">
+    <div class="site-footer__top">
+      <div>
+        <p class="site-footer__label">
+          <span class="site-footer__dot" aria-hidden="true"></span>
+          Built The Right Way
+        </p>
+        <a class="site-footer__logo" href="/" aria-label="Ironclad Construction — home">
+          <img src="/assets/img/ironclad-logo-nav-primary.png" alt="Ironclad Construction" />
+        </a>
+        <nav aria-label="Footer Navigation">
+          <ul class="site-footer__navList">
+            <li><a href="#">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#projectsSection">Projects</a></li>
+            <li><a href="#">Get A Quote</a></li>
+          </ul>
+        </nav>
+      </div>
+      <nav class="site-footer__social" aria-label="Social Links">
+        <a href="#" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a href="#" target="_blank" rel="noopener noreferrer">Facebook</a>
+      </nav>
+      <div class="site-footer__project">
+        <p class="site-footer__label">
+          <span class="site-footer__dot" aria-hidden="true"></span>
+          Recently completed
+        </p>
+        <a class="site-footer__card" href="#">
+          <div class="site-footer__card-media">
+            <img src="/assets/img/trail/project-4.jpg" alt="" loading="lazy" />
+          </div>
+          <div class="site-footer__card-text">
+            <p class="site-footer__card-heading">Twin Gable Residence</p>
+            <p class="site-footer__card-date">2026</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <div class="site-footer__wordmark" id="footerWordmark" aria-label="Ironclad">
+      <span class="wordmark-letter"><span class="wordmark-letter__inner">I</span></span><span class="wordmark-letter"><span class="wordmark-letter__inner">R</span></span><span class="wordmark-letter"><span class="wordmark-letter__inner">O</span></span><span class="wordmark-letter"><span class="wordmark-letter__inner">N</span></span><span class="wordmark-letter"><span class="wordmark-letter__inner">C</span></span><span class="wordmark-letter"><span class="wordmark-letter__inner">L</span></span><span class="wordmark-letter"><span class="wordmark-letter__inner">A</span></span><span class="wordmark-letter"><span class="wordmark-letter__inner">D</span></span>
+    </div>
+
+    <div class="site-footer__row">
+      <p>© 2026 Ironclad Construction</p>
+      <a href="#" target="_blank" rel="noopener noreferrer">Site by Visionary Web Studio</a>
+    </div>
+  </div>
+</footer>
+
 <div class="services-popup" id="servicesPopup" aria-hidden="true">
   <div class="services-popup__overlay" id="servicesPopupOverlay"></div>
   <div class="services-popup__panel" id="servicesPopupPanel">
@@ -2100,6 +2332,41 @@
       });
     }, { threshold: 0.3 });
     io.observe(document.querySelector('.cta-footer__container'));
+  }
+
+  // SITE FOOTER — literal replica of havenconstructions.com.au's footer
+  // mechanic (measured off their live DOM by scrolling in small real steps
+  // and reading style.transform between waits): two scroll-scrubbed effects
+  // driven by ONE ScrollTrigger progress value, not a one-shot spring.
+  // (1) the whole nav/card block parallaxes from y:-80 up to 0.
+  // (2) each wordmark letter rests at yPercent:100 (clipped by its
+  // overflow:hidden wrapper) and eases to 0, staggered across the first 70%
+  // of the scroll range so the leftmost letter arrives first -- matching
+  // their left-to-right cascade even though their SVG paths are DOM-ordered
+  // right-to-left.
+  const siteFooter = document.getElementById('siteFooter');
+  const siteFooterInner = document.getElementById('siteFooterInner');
+  const wordmarkLetters = document.querySelectorAll('#footerWordmark .wordmark-letter__inner');
+  if (siteFooter && siteFooterInner && wordmarkLetters.length && window.gsap && window.ScrollTrigger) {
+    gsap.set(siteFooterInner, { y: -80 });
+    gsap.set(wordmarkLetters, { yPercent: 100 });
+
+    ScrollTrigger.create({
+      trigger: siteFooter,
+      start: 'top bottom',
+      end: 'bottom bottom',
+      scrub: 0.4,
+      onUpdate: (self) => {
+        const p = self.progress;
+        gsap.set(siteFooterInner, { y: -80 * (1 - p) });
+        const count = wordmarkLetters.length;
+        wordmarkLetters.forEach((el, i) => {
+          const localStart = (i / count) * 0.7;
+          const localP = Math.min(1, Math.max(0, (p - localStart) / 0.35));
+          gsap.set(el, { yPercent: 100 * (1 - localP) });
+        });
+      }
+    });
   }
 
   // SERVICES POPUP — literal replica of modusprojects.nl's right-side
