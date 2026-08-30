@@ -32,7 +32,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@300;400;500;600&family=Instrument+Sans:wght@500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@300;400;500;600&family=Instrument+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
 
 <style>
   :root {
@@ -1179,7 +1179,7 @@
   }
 
   .site-footer__logo img {
-    height: 40px;
+    height: 80px;
     width: auto;
     display: block;
     margin-bottom: 22px;
@@ -1261,15 +1261,17 @@
 
   .site-footer__wordmark {
     display: block;
+    width: max-content;
+    max-width: none;
     white-space: nowrap;
-    margin-top: clamp(24px, 6vw, 56px);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 800;
+    margin: clamp(24px, 6vw, 56px) auto 0;
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 700;
     text-transform: uppercase;
-    font-size: clamp(3.2rem, 15vw, 12.5rem);
+    font-size: clamp(3.5rem, 11vw, 9rem);
     line-height: 0.92;
     color: var(--white);
-    text-align: center;
+    transform-origin: center top;
   }
 
   .wordmark-letter {
@@ -2338,18 +2340,42 @@
   // mechanic (measured off their live DOM by scrolling in small real steps
   // and reading style.transform between waits): two scroll-scrubbed effects
   // driven by ONE ScrollTrigger progress value, not a one-shot spring.
-  // (1) the whole nav/card block parallaxes from y:-80 up to 0.
-  // (2) each wordmark letter rests at yPercent:100 (clipped by its
-  // overflow:hidden wrapper) and eases to 0, staggered across the first 70%
-  // of the scroll range so the leftmost letter arrives first -- matching
-  // their left-to-right cascade even though their SVG paths are DOM-ordered
-  // right-to-left.
+  // (1) the whole nav/card block parallaxes from y:-240 up to 0 (amplified
+  // 3x per explicit feedback -- the original -80 read as too subtle).
+  // (2) each wordmark letter rests at yPercent:300 (3x its own height,
+  // clipped by its overflow:hidden wrapper) and eases to 0, staggered across
+  // the first 70% of the scroll range so the leftmost letter arrives first
+  // -- matching their left-to-right cascade even though their SVG paths are
+  // DOM-ordered right-to-left.
+  //
+  // The wordmark itself is stretched edge-to-edge with a measured scaleX
+  // (not just a bigger font-size) -- "IRONCLAD" is 8 letters vs "Haven"'s 5,
+  // so matching Haven's edge-to-edge span at the same font-size is
+  // impossible; scaling horizontally is what actually reaches both edges,
+  // and matches the literal ask ("stretched out").
   const siteFooter = document.getElementById('siteFooter');
   const siteFooterInner = document.getElementById('siteFooterInner');
+  const footerWordmark = document.getElementById('footerWordmark');
   const wordmarkLetters = document.querySelectorAll('#footerWordmark .wordmark-letter__inner');
+
+  function fitFooterWordmark() {
+    if (!footerWordmark) return;
+    footerWordmark.style.transform = 'scaleX(1)';
+    const natural = footerWordmark.getBoundingClientRect().width;
+    const available = footerWordmark.parentElement.getBoundingClientRect().width;
+    if (natural > 0) {
+      footerWordmark.style.transform = `scaleX(${available / natural})`;
+    }
+  }
+  fitFooterWordmark();
+  window.addEventListener('resize', fitFooterWordmark);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitFooterWordmark);
+  }
+
   if (siteFooter && siteFooterInner && wordmarkLetters.length && window.gsap && window.ScrollTrigger) {
-    gsap.set(siteFooterInner, { y: -80 });
-    gsap.set(wordmarkLetters, { yPercent: 100 });
+    gsap.set(siteFooterInner, { y: -240 });
+    gsap.set(wordmarkLetters, { yPercent: 300 });
 
     ScrollTrigger.create({
       trigger: siteFooter,
@@ -2358,12 +2384,12 @@
       scrub: 0.4,
       onUpdate: (self) => {
         const p = self.progress;
-        gsap.set(siteFooterInner, { y: -80 * (1 - p) });
+        gsap.set(siteFooterInner, { y: -240 * (1 - p) });
         const count = wordmarkLetters.length;
         wordmarkLetters.forEach((el, i) => {
           const localStart = (i / count) * 0.7;
           const localP = Math.min(1, Math.max(0, (p - localStart) / 0.35));
-          gsap.set(el, { yPercent: 100 * (1 - localP) });
+          gsap.set(el, { yPercent: 300 * (1 - localP) });
         });
       }
     });
