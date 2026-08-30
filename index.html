@@ -1012,6 +1012,114 @@
     .projects__header { flex-direction: column; align-items: flex-start; gap: 16px; }
   }
 
+  /* ---------- CTA footer — literal replica of modusprojects.nl's
+     ".footer__topper" (measured off their live DOM): centered headline +
+     button + small avatar/caption row, with three decorative photos
+     absolutely positioned around the text (two stacked top-left at 160px/
+     80px, one mirrored top-right at 160px) rather than laid out in normal
+     flow. Same word-by-word reveal as every other headline on this build,
+     reusing splitWords(). Button orange -> Ironclad green per explicit
+     instruction; same three corner photo positions, different photos. ---------- */
+  .cta-footer {
+    background: var(--white);
+    padding: clamp(64px, 10vw, 96px) 24px clamp(96px, 14vw, 134px);
+  }
+
+  .cta-footer__container {
+    position: relative;
+    max-width: 1450px;
+    min-height: 300px;
+    margin: 0 auto;
+  }
+
+  .cta-footer__text {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .cta-footer__headline {
+    font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+    line-height: 1.15;
+    color: var(--black);
+  }
+
+  .cta-footer__btn {
+    display: inline-block;
+    margin-top: 24px;
+    padding: 14px 28px;
+    background: var(--green);
+    color: var(--white);
+    border-radius: 4px;
+    font-family: 'Barlow', sans-serif;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+
+  .cta-footer__btn:hover {
+    background: var(--green-light);
+  }
+
+  .cta-footer__people {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
+  }
+
+  .cta-footer__people img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .cta-footer__people span {
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    color: rgba(10, 10, 10, 0.65);
+  }
+
+  .cta-footer__img {
+    position: absolute;
+    border-radius: 4px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .cta-footer__img--1 {
+    width: 160px;
+    height: 160px;
+    top: 16px;
+    left: 16px;
+  }
+
+  .cta-footer__img--2 {
+    width: 80px;
+    height: 80px;
+    top: 184px;
+    left: 184px;
+  }
+
+  .cta-footer__img--3 {
+    width: 160px;
+    height: 160px;
+    top: 16px;
+    right: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .cta-footer__img { display: none; }
+    .cta-footer__container { min-height: 0; }
+  }
+
   /* ---------- Services popup — literal replica of modusprojects.nl's
      right-side drawer (measured off their live DOM): fixed-width panel
      slides in from the right over a dim overlay, a continuously drifting
@@ -1495,6 +1603,22 @@
   </div>
 </section>
 
+<section class="cta-footer" id="ctaFooter">
+  <div class="cta-footer__container">
+    <div class="cta-footer__text">
+      <h2 class="cta-footer__headline">Built different. Built to last.</h2>
+      <a href="#" class="cta-footer__btn">Get A Quote</a>
+      <div class="cta-footer__people">
+        <img src="/assets/img/trail/trail-6790048.jpg" alt="" loading="lazy" />
+        <span>We'd love to talk it through</span>
+      </div>
+    </div>
+    <img class="cta-footer__img cta-footer__img--1" src="/assets/img/trail/popup-new-builds-2.jpg" alt="" loading="lazy" />
+    <img class="cta-footer__img cta-footer__img--2" src="/assets/img/trail/popup-renovations-3.jpg" alt="" loading="lazy" />
+    <img class="cta-footer__img cta-footer__img--3" src="/assets/img/trail/popup-framing-4.jpg" alt="" loading="lazy" />
+  </div>
+</section>
+
 <div class="services-popup" id="servicesPopup" aria-hidden="true">
   <div class="services-popup__overlay" id="servicesPopupOverlay"></div>
   <div class="services-popup__panel" id="servicesPopupPanel">
@@ -1951,6 +2075,31 @@
     });
     window.addEventListener('resize', () => updateProjectsSlider(false));
     updateProjectsSlider(false);
+  }
+
+  // CTA FOOTER — literal replica of modusprojects.nl's ".footer__topper".
+  // Same word-by-word reveal technique as every other headline, reusing
+  // splitWords().
+  const ctaHeadline = document.querySelector('.cta-footer__headline');
+  if (ctaHeadline && window.gsap && 'IntersectionObserver' in window) {
+    const ctaWords = splitWords(ctaHeadline);
+    gsap.set(ctaWords, { yPercent: 115, rotate: 8 });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          gsap.to(ctaWords, {
+            yPercent: 0,
+            rotate: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            stagger: 0.025
+          });
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    io.observe(document.querySelector('.cta-footer__container'));
   }
 
   // SERVICES POPUP — literal replica of modusprojects.nl's right-side
