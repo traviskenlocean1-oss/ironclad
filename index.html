@@ -2356,15 +2356,25 @@
   const siteFooter = document.getElementById('siteFooter');
   const siteFooterInner = document.getElementById('siteFooterInner');
   const footerWordmark = document.getElementById('footerWordmark');
-  const wordmarkLetters = document.querySelectorAll('#footerWordmark .wordmark-letter__inner');
 
   function fitFooterWordmark() {
     if (!footerWordmark) return;
-    footerWordmark.style.transform = 'scaleX(1)';
+    footerWordmark.style.marginBottom = '0px';
+    footerWordmark.style.transform = 'scaleX(1) scaleY(1)';
     const natural = footerWordmark.getBoundingClientRect().width;
+    const naturalHeight = footerWordmark.offsetHeight;
     const available = footerWordmark.parentElement.getBoundingClientRect().width;
     if (natural > 0) {
-      footerWordmark.style.transform = `scaleX(${available / natural})`;
+      // scaleX alone (no vertical scale) made the letters read as flat and
+      // squat -- wide without the height to match. scaleY(1.35) makes them
+      // taller too, per explicit feedback. transform-origin is center top,
+      // so all the extra height from scaleY appears BELOW the original box
+      // -- CSS transforms don't affect layout flow, so without reserving
+      // that extra space the copyright row below visually collides with
+      // the now-taller wordmark. Reserve it explicitly via margin-bottom.
+      const scaleY = 1.35;
+      footerWordmark.style.transform = `scaleX(${available / natural}) scaleY(${scaleY})`;
+      footerWordmark.style.marginBottom = `${naturalHeight * (scaleY - 1) + 16}px`;
     }
   }
   fitFooterWordmark();
@@ -2373,9 +2383,11 @@
     document.fonts.ready.then(fitFooterWordmark);
   }
 
-  if (siteFooter && siteFooterInner && wordmarkLetters.length && window.gsap && window.ScrollTrigger) {
+  // Wordmark is static now -- no per-letter reveal, per explicit feedback
+  // ("shouldn't move in, should just already be there"). Only the nav/card
+  // block above it still parallaxes in on scroll.
+  if (siteFooter && siteFooterInner && window.gsap && window.ScrollTrigger) {
     gsap.set(siteFooterInner, { y: -240 });
-    gsap.set(wordmarkLetters, { yPercent: 300 });
 
     ScrollTrigger.create({
       trigger: siteFooter,
@@ -2385,12 +2397,6 @@
       onUpdate: (self) => {
         const p = self.progress;
         gsap.set(siteFooterInner, { y: -240 * (1 - p) });
-        const count = wordmarkLetters.length;
-        wordmarkLetters.forEach((el, i) => {
-          const localStart = (i / count) * 0.7;
-          const localP = Math.min(1, Math.max(0, (p - localStart) / 0.35));
-          gsap.set(el, { yPercent: 300 * (1 - localP) });
-        });
       }
     });
   }
