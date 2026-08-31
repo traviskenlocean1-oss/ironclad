@@ -200,7 +200,7 @@
   /* ---------- Hero (scroll-scrubbed video) ---------- */
   .scrub-wrap {
     position: relative;
-    height: 700vh;
+    height: 480vh;
   }
 
   .scrub-pin {
@@ -281,7 +281,7 @@
   }
 
   @media (max-width: 720px) {
-    .scrub-wrap { height: 500vh; }
+    .scrub-wrap { height: 360vh; }
     .nav__links { display: none; }
   }
 
@@ -1987,7 +1987,13 @@
 
   function prog() {
     const vh = window.innerHeight;
-    return Math.max(0, Math.min(1, (window.scrollY - wrapTop) / (wrapHeight - vh)));
+    const raw = Math.max(0, Math.min(1, (window.scrollY - wrapTop) / (wrapHeight - vh)));
+    // Ease-in curve (not linear): the build advances slower over the first
+    // portion of the scroll and accelerates through the back half, so the
+    // tail end resolves faster instead of dragging at the same rate the
+    // whole way — fixes the section feeling too long and handing off to
+    // normal scroll too abruptly right as it finished.
+    return Math.pow(raw, 1.5);
   }
 
   let raf = false;
