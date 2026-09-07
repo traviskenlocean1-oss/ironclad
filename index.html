@@ -1942,6 +1942,12 @@
       heroVideo.src = URL.createObjectURL(blob);
       heroVideo.addEventListener('loadedmetadata', () => {
         heroVideoReady = true;
+        // iOS Safari never paints a seeked video frame until play() has run
+        // at least once on that element — a video that's only ever had its
+        // currentTime set (no real playback) stays frozen or black no matter
+        // how many seeks happen. Silently play + immediately pause once to
+        // unlock the decoder before any scroll-driven seeking begins.
+        heroVideo.play().then(() => heroVideo.pause()).catch(() => {});
         tick();
       }, { once: true });
     })
