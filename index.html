@@ -1945,9 +1945,18 @@
         // iOS Safari never paints a seeked video frame until play() has run
         // at least once on that element — a video that's only ever had its
         // currentTime set (no real playback) stays frozen or black no matter
-        // how many seeks happen. Silently play + immediately pause once to
-        // unlock the decoder before any scroll-driven seeking begins.
-        heroVideo.play().then(() => heroVideo.pause()).catch(() => {});
+        // how many seeks happen. A poster attribute makes this worse: Safari
+        // can stay stuck showing the poster instead of swapping to the real
+        // decoded frame if play() gets paused again before that swap
+        // finishes. Remove the poster and wait for the 'playing' event
+        // (proof a real frame actually rendered) before pausing, with a
+        // timeout fallback in case that event never fires.
+        heroVideo.removeAttribute('poster');
+        let unlocked = false;
+        const finishUnlock = () => { if (!unlocked) { unlocked = true; heroVideo.pause(); } };
+        heroVideo.addEventListener('playing', finishUnlock, { once: true });
+        heroVideo.play().catch(() => {});
+        setTimeout(finishUnlock, 400);
         tick();
       }, { once: true });
     })
