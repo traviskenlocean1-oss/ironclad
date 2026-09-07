@@ -1936,31 +1936,58 @@
   const heroContent = document.getElementById('heroContent');
 
   let heroVideoReady = false;
+  window.__vwsDebug = { playCalled: false, unlocked: false, unlockedViaEvent: false };
   fetch('/assets/video/hero-construction.mp4')
     .then(r => r.blob())
     .then(blob => {
+      // play() used to be chained AFTER waiting for 'loadedmetadata' - on a
+      // real iPhone (confirmed on the Meridian Estates sister site) that's a
+      // deadlock: iOS Safari can require play() to have been called before
+      // it will ever advance readyState past 0 on a blob-sourced video, but
+      // this was waiting for readyState to advance before calling play().
+      // Fix: call play() immediately after the blob src is assigned,
+      // unconditionally - muted+playsinline means this needs no user gesture.
+      heroVideo.removeAttribute('poster');
       heroVideo.src = URL.createObjectURL(blob);
-      heroVideo.addEventListener('loadedmetadata', () => {
-        heroVideoReady = true;
-        // iOS Safari never paints a seeked video frame until play() has run
-        // at least once on that element — a video that's only ever had its
-        // currentTime set (no real playback) stays frozen or black no matter
-        // how many seeks happen. A poster attribute makes this worse: Safari
-        // can stay stuck showing the poster instead of swapping to the real
-        // decoded frame if play() gets paused again before that swap
-        // finishes. Remove the poster and wait for the 'playing' event
-        // (proof a real frame actually rendered) before pausing, with a
-        // timeout fallback in case that event never fires.
-        heroVideo.removeAttribute('poster');
+      window.__vwsDebug.playCalled = true;
+      heroVideo.play().catch(() => {});
+      const proceed = () => {
         let unlocked = false;
-        const finishUnlock = () => { if (!unlocked) { unlocked = true; heroVideo.pause(); } };
-        heroVideo.addEventListener('playing', finishUnlock, { once: true });
-        heroVideo.play().catch(() => {});
-        setTimeout(finishUnlock, 400);
+        const finishUnlock = (viaEvent) => {
+          if (unlocked) return;
+          unlocked = true;
+          window.__vwsDebug.unlockedViaEvent = !!viaEvent;
+          window.__vwsDebug.unlocked = true;
+          heroVideo.pause();
+        };
+        heroVideo.addEventListener('playing', () => finishUnlock(true), { once: true });
+        setTimeout(() => finishUnlock(false), 400);
+        heroVideoReady = true;
         tick();
-      }, { once: true });
+      };
+      if (heroVideo.readyState >= 1) proceed();
+      else heroVideo.addEventListener('loadedmetadata', proceed, { once: true });
     })
     .catch(() => {});
+
+  // ?debug=1 on-screen readout - same as Meridian Estates, so a real-phone
+  // check doesn't need devtools. Remove once mobile video is fully confirmed.
+  if (new URLSearchParams(location.search).get('debug') === '1') {
+    const box = document.createElement('div');
+    box.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999999;background:rgba(0,0,0,0.85);color:#0f0;font:11px/1.4 monospace;padding:8px 10px;white-space:pre;pointer-events:none;';
+    document.body.appendChild(box);
+    setInterval(() => {
+      const d = window.__vwsDebug;
+      box.textContent =
+        'playCalled=' + d.playCalled + '  unlocked=' + d.unlocked + ' (viaEvent=' + d.unlockedViaEvent + ')\n' +
+        'video.error=' + (heroVideo.error ? heroVideo.error.code : 'null') +
+        '  readyState=' + heroVideo.readyState +
+        '  paused=' + heroVideo.paused +
+        '  currentTime=' + heroVideo.currentTime.toFixed(2) +
+        '  duration=' + (heroVideo.duration || 'NaN') + '\n' +
+        'scrollY=' + window.scrollY;
+    }, 200);
+  }
 
   // Eases the video's currentTime toward the scroll-derived target every
   // animation frame instead of snapping straight to it, so the build reads
