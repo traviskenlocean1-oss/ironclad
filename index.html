@@ -1936,10 +1936,55 @@
   const heroContent = document.getElementById('heroContent');
 
   let heroVideoReady = false;
-  window.__vwsDebug = { playCalled: false, unlocked: false, unlockedViaEvent: false };
+  window.__vwsDebug = { playCalled: false, unlocked: false, unlockedViaEvent: false, blobFailed: false, fellBack: false };
+
+  function unlockAndStart() {
+    heroVideo.removeAttribute('poster');
+    window.__vwsDebug.playCalled = true;
+    heroVideo.play().catch(() => {});
+    const proceed = () => {
+      let unlocked = false;
+      const finishUnlock = (viaEvent) => {
+        if (unlocked) return;
+        unlocked = true;
+        window.__vwsDebug.unlockedViaEvent = !!viaEvent;
+        window.__vwsDebug.unlocked = true;
+        heroVideo.pause();
+      };
+      heroVideo.addEventListener('playing', () => finishUnlock(true), { once: true });
+      setTimeout(() => finishUnlock(false), 400);
+      heroVideoReady = true;
+      tick();
+    };
+    if (heroVideo.readyState >= 1) proceed();
+    else heroVideo.addEventListener('loadedmetadata', proceed, { once: true });
+  }
+
+  // The whole-file blob fetch (needed for reliable seeking, see note above)
+  // can stall or fail outright on a slow/flaky mobile connection -- this was
+  // an unbounded fetch with a silent .catch(() => {}), so a bad connection
+  // just left the hero doing nothing forever with no way to recover.
+  // Fix: race it against a timeout: if the blob isn't ready in time (or the
+  // fetch errors), fall back to a normal streaming <video src>. Seeking
+  // against that won't be as instant (no Range support on this host), but
+  // a video that plays through without scroll-perfect scrubbing beats a
+  // hero that never does anything at all.
+  let heroFellBack = false;
+  function fallBackToStreaming() {
+    if (heroFellBack || heroVideo.src) return;
+    heroFellBack = true;
+    window.__vwsDebug.fellBack = true;
+    heroVideo.preload = 'auto';
+    heroVideo.src = '/assets/video/hero-construction.mp4';
+    unlockAndStart();
+  }
+  const heroLoadTimeout = setTimeout(fallBackToStreaming, 7000);
+
   fetch('/assets/video/hero-construction.mp4')
     .then(r => r.blob())
     .then(blob => {
+      clearTimeout(heroLoadTimeout);
+      if (heroFellBack) return; // streaming fallback already took over
       // play() used to be chained AFTER waiting for 'loadedmetadata' - on a
       // real iPhone (confirmed on the Meridian Estates sister site) that's a
       // deadlock: iOS Safari can require play() to have been called before
@@ -1947,28 +1992,14 @@
       // this was waiting for readyState to advance before calling play().
       // Fix: call play() immediately after the blob src is assigned,
       // unconditionally - muted+playsinline means this needs no user gesture.
-      heroVideo.removeAttribute('poster');
       heroVideo.src = URL.createObjectURL(blob);
-      window.__vwsDebug.playCalled = true;
-      heroVideo.play().catch(() => {});
-      const proceed = () => {
-        let unlocked = false;
-        const finishUnlock = (viaEvent) => {
-          if (unlocked) return;
-          unlocked = true;
-          window.__vwsDebug.unlockedViaEvent = !!viaEvent;
-          window.__vwsDebug.unlocked = true;
-          heroVideo.pause();
-        };
-        heroVideo.addEventListener('playing', () => finishUnlock(true), { once: true });
-        setTimeout(() => finishUnlock(false), 400);
-        heroVideoReady = true;
-        tick();
-      };
-      if (heroVideo.readyState >= 1) proceed();
-      else heroVideo.addEventListener('loadedmetadata', proceed, { once: true });
+      unlockAndStart();
     })
-    .catch(() => {});
+    .catch(() => {
+      clearTimeout(heroLoadTimeout);
+      window.__vwsDebug.blobFailed = true;
+      fallBackToStreaming();
+    });
 
   // ?debug=1 on-screen readout - same as Meridian Estates, so a real-phone
   // check doesn't need devtools. Remove once mobile video is fully confirmed.
